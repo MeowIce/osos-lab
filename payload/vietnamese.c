@@ -49,11 +49,11 @@ void cfw_install_vietnamese(void *bank)
     /* Music Menu rows (indices 0..7) */
     static const char *const music_titles_vi[] = {
         "Cover Flow", "Danh sách phát", "Nghệ sĩ", "Album",
-        "Bài hát", "Thể loại", "Nhà soạn nhạc", "Sách nói"
+        "Bài hát", "Thể loại", "Tìm kiếm", "Sách nói"
     };
     static const char *const music_titles_en[] = {
         "Cover Flow", "Playlists", "Artists", "Albums",
-        "Songs", "Genres", "Composers", "Audiobooks"
+        "Songs", "Genres", "Search", "Audiobooks"
     };
 
     int is_vi = enabled != 0;
@@ -356,15 +356,8 @@ static const struct vi_entry translations[] = {
 
     /* Battery & Status */
     {"Battery", "Pin"},
-    {"Charging", "Đang sạc"},
-    {"Charged", "Đã sạc đầy"},
     {"Low Battery", "Pin yếu"},
     {"Connect to Power", "Kết nối nguồn điện"},
-    {"Connected", "Đã kết nối"},
-    {"Synchronizing", "Đang đồng bộ..."},
-    {"Do not disconnect.", "Không ngắt kết nối."},
-    {"OK to Disconnect", "Có thể ngắt kết nối"},
-    {"Eject before disconnecting.", "Đẩy ra trước khi ngắt kết nối."},
 
     /* Date & Time */
     {"Time", "Thời gian"},
@@ -394,7 +387,7 @@ static const struct vi_entry translations[] = {
     {"Play Next", "Phát tiếp theo"},
     {"Play Last", "Phát sau cùng"},
     {"Song Info", "Thông tin bài hát"},
-    {"CFW Info", "Thông tin RepriseOS"},
+    {"CFW Info", "Thông tin CFW"},
     {"Custom EQ", "EQ tùy chỉnh"},
     {"Precut", "Precut"},
     {"Band 1", "Dải 1"},
