@@ -23,64 +23,7 @@ void cfw_install_vietnamese(void *bank)
     if (!bank)
         return;
 
-    /* Main Menu rows (indices 0..13) */
-    static const char *const main_titles_vi[] = {
-        "Nhạc",                              /* 0: Music */
-        "Video",                             /* 1: Videos */
-        "Ảnh",                               /* 2: Photos */
-        "Podcasts",                          /* 3: Podcasts */
-        "Tiện ích",                          /* 4: Extras */
-        "Cài đặt",                           /* 5: Settings */
-        "Xáo trộn",                          /* 6: Shuffle Songs */
-        "Đang phát",                         /* 7: Now Playing */
-        "Nghệ sĩ",                           /* 8: Artists */
-        "Album",                             /* 9: Albums */
-        "Bài hát",                           /* 10: Songs */
-        "Thể loại",                          /* 11: Genres */
-        "Nhà soạn nhạc",                     /* 12: Composers */
-        "Sách nói",                          /* 13: Audiobooks */
-    };
-    static const char *const main_titles_en[] = {
-        "Music", "Videos", "Photos", "Podcasts", "Extras", "Settings",
-        "Shuffle Songs", "Now Playing", "Artists", "Albums", "Songs",
-        "Genres", "Composers", "Audiobooks"
-    };
-
-    /* Music Menu rows (indices 0..7) */
-    static const char *const music_titles_vi[] = {
-        "Cover Flow", "Danh sách phát", "Nghệ sĩ", "Album",
-        "Bài hát", "Thể loại", "Tìm kiếm", "Sách nói"
-    };
-    static const char *const music_titles_en[] = {
-        "Cover Flow", "Playlists", "Artists", "Albums",
-        "Songs", "Genres", "Search", "Audiobooks"
-    };
-
     int is_vi = enabled != 0;
-    const char *const *main_titles = is_vi ? main_titles_vi : main_titles_en;
-    const char *const *music_titles = is_vi ? music_titles_vi : music_titles_en;
-
-    const uint8_t *main_rows = (const uint8_t *)OSOS_MAIN_MENU_SETTINGS_ROWS;
-    for (uint32_t i = 0; i < sizeof(main_titles_vi) / sizeof(main_titles_vi[0]); i++) {
-        uint32_t title_id = *(const uint32_t *)(main_rows + i * 20 + 4);
-        if (title_id) {
-            const char *str = main_titles[i];
-            uint32_t len = 0;
-            while (str[len]) len++;
-            osos_resource_set(bank, 0x53747220, title_id, str, len + 1);
-        }
-    }
-
-    const uint8_t *music_rows = (const uint8_t *)OSOS_MUSIC_MENU_SETTINGS_ROWS;
-    for (uint32_t i = 0; i < sizeof(music_titles_vi) / sizeof(music_titles_vi[0]); i++) {
-        uint32_t title_id = *(const uint32_t *)(music_rows + i * 20 + 4);
-        if (title_id) {
-            const char *str = music_titles[i];
-            uint32_t len = 0;
-            while (str[len]) len++;
-            osos_resource_set(bank, 0x53747220, title_id, str, len + 1);
-        }
-    }
 
     /* Common toggle strings: Bật / Tắt or On / Off */
     const char *on_str = is_vi ? "Bật" : "On";
@@ -90,17 +33,6 @@ void cfw_install_vietnamese(void *bank)
     while (off_str[off_len]) off_len++;
     osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_ON_STRING, on_str, on_len + 1);
     osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_OFF_STRING, off_str, off_len + 1);
-
-    /* DiskModeSmallFont (0x464f4e54, 0x0dad0036):
-     * Stock font is 63pt plain Helvetica without Vietnamese Unicode glyphs.
-     * Override to 58pt (Settings_SmallFontPlain, flags 0x02959500) which has
-     * complete Vietnamese accented character support.
-     */
-    static const uint32_t stock_disk_mode_small_font[] = {0x0dad0036, 63, 0x0295b100};
-    static const uint32_t vi_disk_mode_small_font[] = {0x0dad0036, 58, 0x02959500};
-    const uint32_t *small_font = is_vi ? vi_disk_mode_small_font : stock_disk_mode_small_font;
-    osos_resource_set(bank, 0x464f4e54, 0x0dad0036, small_font,
-                      sizeof(vi_disk_mode_small_font));
 }
 
 void cfw_vietnamese_load(void)
@@ -233,6 +165,7 @@ static const struct vi_entry translations[] = {
     {"Legal", "Pháp lý"},
     {"Reset All Settings", "Đặt lại tất cả"},
     {"Reset Settings", "Đặt lại cài đặt"},
+    {"Reset Menu", "Đặt lại menu"},
     {"Repeat", "Lặp lại"},
     {"Shuffle", "Xáo trộn"},
     {"Clicker", "Tiếng bấm"},
@@ -362,17 +295,17 @@ static const struct vi_entry translations[] = {
     {"Continue", "Tiếp tục"},
     {"Lock", "Khóa"},
     {"Unlock", "Mở khóa"},
-    {"Loading...", "Đang tải..."},
-    {"Please Wait...", "Vui lòng chờ..."},
+    {"Loading...", "Dang tai..."},
+    {"Please Wait...", "Vui long cho..."},
 
-    /* USB Disk Mode */
-    {"Connected", "Đã kết nối"},
-    {"Synchronizing", "Đang đồng bộ..."},
-    {"Do not disconnect.", "Không ngắt kết nối."},
-    {"OK to Disconnect", "Có thể ngắt kết nối"},
-    {"Eject before disconnecting.", "Đẩy ra trước khi ngắt kết nối."},
-    {"Ejecting", "Đang đẩy ra..."},
-    {"You may now disconnect.", "Có thể ngắt kết nối."},
+    /* USB Disk Mode (pure ASCII font-safe to avoid missing glyphs when drive is locked by USB) */
+    {"Connected", "Da ket noi"},
+    {"Synchronizing", "Dang dong bo..."},
+    {"Do not disconnect.", "Khong ngat ket noi."},
+    {"OK to Disconnect", "Co the ngat ket noi"},
+    {"Eject before disconnecting.", "Day ra truoc khi ngat ket noi."},
+    {"Ejecting", "Dang day ra..."},
+    {"You may now disconnect.", "Co the ngat ket noi."},
 
     /* Battery & Status */
     {"Battery", "Pin"},

@@ -33,9 +33,8 @@ static void *get_pointer(void *base, unsigned offset)
     return pointer;
 }
 
-static int vietnamese;
 int cfw_dark_mode_enabled(void) { return dark; }
-int cfw_vietnamese_enabled(void) { return vietnamese; }
+int cfw_vietnamese_enabled(void) { return 0; }
 const char *cfw_vietnamese_translate(const char *s) { return s; }
 
 const void *cfw_dark_mode_color(uint32_t id, const void *color)
@@ -253,9 +252,5 @@ int main(void)
     assert(!color_lookups);
     assert(cfw_bitmap_resource_get(NULL, OSOS_RESOURCE_COLR, 123) == &replacement_color);
     assert(color_lookups == 1);
-    vietnamese = 1;
-    const uint32_t *font = cfw_bitmap_resource_get(NULL, OSOS_RESOURCE_FONT, 0x0dad0036);
-    assert(font != NULL && font[0] == 0x0dad0036 && font[1] == 58 && font[2] == 0x02959500);
-    vietnamese = 0;
     return 0;
 }
