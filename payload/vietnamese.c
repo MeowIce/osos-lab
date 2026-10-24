@@ -90,6 +90,17 @@ void cfw_install_vietnamese(void *bank)
     while (off_str[off_len]) off_len++;
     osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_ON_STRING, on_str, on_len + 1);
     osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_OFF_STRING, off_str, off_len + 1);
+
+    /* DiskModeSmallFont (0x464f4e54, 0x0dad0036):
+     * Stock font is 63pt plain Helvetica without Vietnamese Unicode glyphs.
+     * Override to 58pt (Settings_SmallFontPlain, flags 0x02959500) which has
+     * complete Vietnamese accented character support.
+     */
+    static const uint32_t stock_disk_mode_small_font[] = {0x0dad0036, 63, 0x0295b100};
+    static const uint32_t vi_disk_mode_small_font[] = {0x0dad0036, 58, 0x02959500};
+    const uint32_t *small_font = is_vi ? vi_disk_mode_small_font : stock_disk_mode_small_font;
+    osos_resource_set(bank, 0x464f4e54, 0x0dad0036, small_font,
+                      sizeof(vi_disk_mode_small_font));
 }
 
 void cfw_vietnamese_load(void)
@@ -353,6 +364,15 @@ static const struct vi_entry translations[] = {
     {"Unlock", "Mở khóa"},
     {"Loading...", "Đang tải..."},
     {"Please Wait...", "Vui lòng chờ..."},
+
+    /* USB Disk Mode */
+    {"Connected", "Đã kết nối"},
+    {"Synchronizing", "Đang đồng bộ..."},
+    {"Do not disconnect.", "Không ngắt kết nối."},
+    {"OK to Disconnect", "Có thể ngắt kết nối"},
+    {"Eject before disconnecting.", "Đẩy ra trước khi ngắt kết nối."},
+    {"Ejecting", "Đang đẩy ra..."},
+    {"You may now disconnect.", "Có thể ngắt kết nối."},
 
     /* Battery & Status */
     {"Battery", "Pin"},

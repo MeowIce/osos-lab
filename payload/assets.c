@@ -18,6 +18,10 @@ PATCH_ARM const void *cfw_bitmap_resource_get(void *service, uint32_t type, uint
                 return cfw_bitmap_assets[i].data;
         }
     }
+    if (type == OSOS_RESOURCE_FONT && id == 0x0dad0036 && cfw_vietnamese_enabled()) {
+        static const uint32_t small_font[] = {0x0dad0036, 58, 0x02959500};
+        return small_font;
+    }
     const void *resource = cfw_bitmap_resource_get_original(service, type, id);
     if (type == OSOS_RESOURCE_COLR)
         resource = cfw_dark_mode_color(id, resource);
