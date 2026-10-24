@@ -4,6 +4,7 @@
 
 #include "album_artist.h"
 #include "song_info_ui.h"
+#include "vietnamese.h"
 
 /* UI actions run sequentially; each completed row is copied into the resource bank. */
 static struct {
@@ -56,6 +57,11 @@ static void label(uint32_t resource, const char *name)
     body.resource = resource;
     body.size = 0;
     body.data[0] = 0;
+    if (cfw_vietnamese_enabled()) {
+        const char *vi = cfw_vietnamese_translate(name);
+        if (vi)
+            name = vi;
+    }
     append(name);
     append(": ");
 }
@@ -74,7 +80,10 @@ static void text_field(struct osos_media_item *item, uint32_t resource,
     }
     const char *text = osos_native_string_data(&string);
     label(resource, name);
-    append(text && *text ? text : "Unknown");
+    if (text && *text)
+        append(text);
+    else
+        append(cfw_vietnamese_enabled() ? "Không rõ" : "Unknown");
     osos_native_string_destroy(&string);
 }
 
@@ -82,7 +91,7 @@ static void number_field(uint32_t resource, const char *name, uint32_t number, c
 {
     label(resource, name);
     if (!number) {
-        append("Unknown");
+        append(cfw_vietnamese_enabled() ? "Không rõ" : "Unknown");
         return;
     }
     decimal(number);
@@ -100,7 +109,7 @@ static void duration(uint32_t milliseconds)
 {
     label(CFW_INFO_DURATION, "Duration");
     if (!milliseconds) {
-        append("Unknown");
+        append(cfw_vietnamese_enabled() ? "Không rõ" : "Unknown");
         return;
     }
     uint32_t seconds = milliseconds / 1000;
@@ -119,7 +128,7 @@ static void ordinal(uint32_t resource, const char *name, uint32_t number, uint16
 {
     number_field(resource, name, number, "");
     if (number && total >= number) {
-        append(" of ");
+        append(cfw_vietnamese_enabled() ? " trên " : " of ");
         decimal(total);
     }
 }
@@ -148,7 +157,7 @@ static void metadata(struct osos_media_item *item)
         decimal(bytes % 1048576 * 10 / 1048576);
         append(" MiB");
     } else {
-        append("Unknown");
+        append(cfw_vietnamese_enabled() ? "Không rõ" : "Unknown");
     }
     label(CFW_INFO_RATING, "Rating");
     int32_t rating = osos_media_item_rating(item);
@@ -156,7 +165,7 @@ static void metadata(struct osos_media_item *item)
         decimal(rating / 20);
         append("/5");
     } else {
-        append("Unrated");
+        append(cfw_vietnamese_enabled() ? "Chưa đánh giá" : "Unrated");
     }
     label(CFW_INFO_PLAY_COUNT, "Play count");
     decimal(osos_media_item_play_count(item));
