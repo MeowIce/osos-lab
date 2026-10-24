@@ -130,7 +130,7 @@ int main(int argc,char **argv)
     assert(test_result.received==size && test_result.written==size && test_result.verified==size);
     assert(!memcmp(test_result.source_sha256,upload_config.sha256,32));
     assert(!memcmp(test_result.disk_sha256,upload_config.sha256,32));
-    assert(mounts==2 && sleeps==2);
+    assert(mounts==2 && sleeps==1);
     int f=open("os.bin",O_RDONLY);assert(f>=0);assert(filesize(f)==size);
     uint8_t readback[65536];
     for(unsigned off=0;off<size;){unsigned n=MIN(size-off,65536);assert(read(f,readback,n)==n);pattern(off,n);assert(!memcmp(test_buffer,readback,n));off+=n;}

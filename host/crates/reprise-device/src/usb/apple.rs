@@ -21,7 +21,8 @@ use windows_sys::{
         Foundation::{
             GetLastError, ERROR_DEVICE_NOT_CONNECTED, ERROR_FILE_NOT_FOUND,
             ERROR_INSUFFICIENT_BUFFER, ERROR_IO_PENDING, ERROR_NO_MORE_ITEMS, ERROR_NO_SUCH_DEVICE,
-            ERROR_SEM_TIMEOUT, GENERIC_READ, GENERIC_WRITE, INVALID_HANDLE_VALUE, WAIT_TIMEOUT,
+            ERROR_OPERATION_ABORTED, ERROR_SEM_TIMEOUT, GENERIC_READ, GENERIC_WRITE,
+            INVALID_HANDLE_VALUE, WAIT_TIMEOUT,
         },
         Storage::FileSystem::{
             CreateFileW, ReadFile, WriteFile, FILE_FLAG_OVERLAPPED, FILE_SHARE_READ,
@@ -49,8 +50,11 @@ impl Drop for DeviceList {
 fn error(operation: &'static str, code: u32) -> Error {
     match code {
         WAIT_TIMEOUT | ERROR_SEM_TIMEOUT => usb_error(operation, rusb::Error::Timeout),
-        // Apple's driver can report FILE_NOT_FOUND when the iPod leaves DFU.
-        ERROR_DEVICE_NOT_CONNECTED | ERROR_NO_SUCH_DEVICE | ERROR_FILE_NOT_FOUND => {
+        // Apple's driver can report FILE_NOT_FOUND or OPERATION_ABORTED when the iPod leaves DFU or resets.
+        ERROR_DEVICE_NOT_CONNECTED
+        | ERROR_NO_SUCH_DEVICE
+        | ERROR_FILE_NOT_FOUND
+        | ERROR_OPERATION_ABORTED => {
             usb_error(operation, rusb::Error::NoDevice)
         }
         _ => invalid(format!(

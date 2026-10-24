@@ -159,10 +159,14 @@ static void begin_readback(void)
         upload_fail(-307);
         return;
     }
-    upload_close();
-    if (UPLOAD_RESULT->rc)
-        return;
-    closed = false;
+    if (mounted) {
+        int result = disk_unmount_all();
+        mounted = false;
+        if (result != 1) {
+            upload_fail(-321);
+            return;
+        }
+    }
     int mounts = disk_mount_all();
     mounted = mounts > 0;
     if (mounts != 1) {
