@@ -18,6 +18,14 @@ PATCH_ARM const void *cfw_bitmap_resource_get(void *service, uint32_t type, uint
                 return cfw_bitmap_assets[i].data;
         }
     }
+    if (type == OSOS_RESOURCE_FONT && cfw_vietnamese_enabled()) {
+        if (id == 0x0dad0020 || id == 0x0dad0023 || id == 0x0dad0004 ||
+            id == 0x0dad0010 || id == 0x0dad0013 || id == 0x0dad0016 ||
+            id == 0x0dad001b || id == 0x0dad003b || id == 0x0dad003c)
+            id = 0x0dad0021;
+        else if (id == 0x0dad0036)
+            id = 0x0dad0027;
+    }
     const void *resource = cfw_bitmap_resource_get_original(service, type, id);
     if (type == OSOS_RESOURCE_COLR)
         resource = cfw_dark_mode_color(id, resource);

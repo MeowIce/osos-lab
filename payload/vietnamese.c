@@ -33,6 +33,12 @@ void cfw_install_vietnamese(void *bank)
     while (off_str[off_len]) off_len++;
     osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_ON_STRING, on_str, on_len + 1);
     osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_OFF_STRING, off_str, off_len + 1);
+
+    /* Date format: %-d %b %Y produces "25 Thg 10 2026" in Vietnamese */
+    const char *date_fmt = is_vi ? "%-d %b %Y" : "%b %-d %Y";
+    uint32_t fmt_len = 0;
+    while (date_fmt[fmt_len]) fmt_len++;
+    osos_resource_set(bank, 0x53747220, 0xb3, date_fmt, fmt_len + 1);
 }
 
 void cfw_vietnamese_load(void)
@@ -367,6 +373,145 @@ static const struct vi_entry translations[] = {
     {"Skip count", "Lượt bỏ qua"},
     {"Unknown", "Không rõ"},
     {"Unrated", "Chưa đánh giá"},
+
+    /* Extras - Contacts */
+    {"No Contacts", "Không có danh bạ"},
+    {"No Contact Information", "Không có thông tin danh bạ"},
+    {"You can download contacts from iTunes.", "Bạn có thể tải danh bạ từ iTunes."},
+
+    /* Extras - Calendars */
+    {"All Calendars", "Tất cả lịch"},
+    {"To Do's", "Việc cần làm"},
+    {"To Do", "Việc cần làm"},
+    {"Loading calendars", "Đang tải lịch..."},
+    {"No events for this day", "Không có sự kiện nào"},
+    {"You have work to do.", "Bạn có việc cần làm."},
+    {"To view your To Do items here, enable syncing from iTunes under the Calendar section of the Contacts tab.", "Để xem việc cần làm tại đây, hãy bật đồng bộ từ iTunes trong mục Lịch của tab Danh bạ."},
+
+    /* Extras - Games */
+    {"%d Games", "%d Trò chơi"},
+    {"52 Games", "52 Trò chơi"},
+    {"No Games", "Không có trò chơi"},
+
+    /* Extras - Screen Lock */
+    {"No Combination", "Chưa đặt mã"},
+    {"Combination Set", "Đã đặt mã"},
+    {"Enter Combination", "Nhập mã khóa"},
+    {"New Combination", "Mã khóa mới"},
+    {"If you forget the combination, connect to iTunes to unlock your iPod.", "Nếu quên mã khóa, hãy kết nối với iTunes để mở khóa iPod."},
+
+    /* Extras - Stopwatch */
+    {"New Timer", "Bấm giờ mới"},
+
+    /* Extras - Alarms & Sleep Timer */
+    {"Inactive", "Không hoạt động"},
+    {"Active", "Đang hoạt động"},
+    {"%d Minutes", "%d Phút"},
+    {"15 Minutes", "15 Phút"},
+    {"30 Minutes", "30 Phút"},
+    {"60 Minutes", "60 Phút"},
+    {"90 Minutes", "90 Phút"},
+    {"120 Minutes", "120 Phút"},
+
+    /* Extras - World Clock */
+    {"Add", "Thêm"},
+    {"Region", "Khu vực"},
+    {"Africa", "Châu Phi"},
+    {"Asia", "Châu Á"},
+    {"Atlantic", "Đại Tây Dương"},
+    {"Australia", "Châu Úc"},
+    {"Europe", "Châu Âu"},
+    {"North America", "Bắc Mỹ"},
+    {"Pacific", "Thái Bình Dương"},
+    {"South America", "Nam Mỹ"},
+    {"Americas", "Châu Mỹ"},
+
+    /* Date formats & Days / Months */
+    {"%b %-d %Y", "%-d %b %Y"},
+    {"%b %-d %y", "%-d %b %y"},
+    {"%B %-d, %Y", "%-d %B %Y"},
+    {"Jan", "Thg 1"},
+    {"Feb", "Thg 2"},
+    {"Mar", "Thg 3"},
+    {"Apr", "Thg 4"},
+    {"May", "Thg 5"},
+    {"Jun", "Thg 6"},
+    {"Jul", "Thg 7"},
+    {"Aug", "Thg 8"},
+    {"Sep", "Thg 9"},
+    {"Oct", "Thg 10"},
+    {"Nov", "Thg 11"},
+    {"Dec", "Thg 12"},
+    {"January", "Tháng 1"},
+    {"February", "Tháng 2"},
+    {"March", "Tháng 3"},
+    {"April", "Tháng 4"},
+    {"June", "Tháng 6"},
+    {"July", "Tháng 7"},
+    {"August", "Tháng 8"},
+    {"September", "Tháng 9"},
+    {"October", "Tháng 10"},
+    {"November", "Tháng 11"},
+    {"December", "Tháng 12"},
+    {"Sunday", "Chủ Nhật"},
+    {"Monday", "Thứ Hai"},
+    {"Tuesday", "Thứ Ba"},
+    {"Wednesday", "Thứ Tư"},
+    {"Thursday", "Thứ Năm"},
+    {"Friday", "Thứ Sáu"},
+    {"Saturday", "Thứ Bảy"},
+    {"Sun", "CN"},
+    {"Mon", "T2"},
+    {"Tue", "T3"},
+    {"Wed", "T4"},
+    {"Thu", "T5"},
+    {"Fri", "T6"},
+    {"Sat", "T7"},
+
+    /* Right pane descriptions & Empty states */
+    {"How fast should audiobooks play?", "Tốc độ phát sách nói?"},
+    {"Playback speed will not affect the pitch of the voice in audiobook playback.", "Tốc độ phát sẽ không ảnh hưởng đến cao độ giọng nói."},
+    {"Do you want to lock the maximum volume limit?", "Bạn có muốn khóa giới hạn âm lượng tối đa?"},
+    {"This will reset all your settings. Your synced content will not be modified.", "Thao tác này sẽ đặt lại tất cả cài đặt. Nội dung đã đồng bộ sẽ không bị thay đổi."},
+    {"Do you want to reset the music menu?", "Bạn có muốn đặt lại menu nhạc?"},
+    {"This will restore your music menu to its original state.", "Thao tác này sẽ khôi phục menu nhạc về trạng thái ban đầu."},
+    {"No Music", "Không có nhạc"},
+    {"No Videos", "Không có video"},
+    {"No Podcasts", "Không có podcast"},
+    {"No Audiobooks", "Không có sách nói"},
+    {"No TV Shows", "Không có chương trình TV"},
+    {"No Movies", "Không có phim"},
+    {"No Music Videos", "Không có video ca nhạc"},
+    {"No Photos", "Không có ảnh"},
+    {"No Playlists", "Không có danh sách phát"},
+    {"No Artists", "Không có nghệ sĩ"},
+    {"No Albums", "Không có album"},
+    {"No Songs", "Không có bài hát"},
+    {"No Genres", "Không có thể loại"},
+    {"No Composers", "Không có nhà soạn nhạc"},
+    {"No Compilations", "Không có tuyển tập"},
+    {"No Rentals", "Không có phim thuê"},
+    {"No Notes", "Không có ghi chú"},
+    {"No Video", "Không có video"},
+    {"No Season", "Không có mùa"},
+    {"No Search Results", "Không có kết quả"},
+    {"You can download music from iTunes.", "Bạn có thể tải nhạc từ iTunes."},
+    {"You can download videos from iTunes.", "Bạn có thể tải video từ iTunes."},
+    {"You can download podcasts from iTunes.", "Bạn có thể tải podcast từ iTunes."},
+    {"You can download audiobooks from iTunes.", "Bạn có thể tải sách nói từ iTunes."},
+    {"You can download TV shows from iTunes.", "Bạn có thể tải chương trình TV từ iTunes."},
+    {"You can download movies from iTunes.", "Bạn có thể tải phim từ iTunes."},
+    {"You can download music videos from iTunes.", "Bạn có thể tải video ca nhạc từ iTunes."},
+    {"You can sync Photos via iTunes.", "Bạn có thể đồng bộ ảnh qua iTunes."},
+    {"You can create playlists and sync via iTunes.", "Bạn có thể tạo danh sách phát và đồng bộ qua iTunes."},
+    {"You can download rentals from iTunes.", "Bạn có thể tải phim thuê từ iTunes."},
+    {"Connect to iTunes to activate Genius.", "Kết nối iTunes để kích hoạt Genius."},
+    {"Genius plays songs on your iPod that go great together.  You can start from the Now Playing screen, or choose a song you like and hold down the center button to bring up the Genius option.", "Genius phát các bài hát phù hợp với nhau. Bạn có thể bắt đầu từ màn hình Đang phát hoặc giữ nút chọn trên bài hát để mở Genius."},
+    {"Genius Mixes are created for you by iTunes and play songs from your library that go great together. To use Genius Mixes, turn on Genius in iTunes.", "Bản phối Genius phát các bài hát phù hợp trong thư viện của bạn. Hãy bật Genius trong iTunes để sử dụng."},
+    {"To view text files here, enable your iPod for disk use in iTunes, then simply drag text files to the Notes folder on your iPod.", "Để xem tệp văn bản tại đây, hãy bật chế độ ổ đĩa trong iTunes rồi kéo tệp vào thư mục Notes."},
+    {"Start Genius", "Bắt đầu Genius"},
+    {"Creating Genius Playlist", "Đang tạo danh sách Genius..."},
+    {"Genius is unavailable for the selected song.", "Genius không khả dụng cho bài hát này."},
 };
 
 const char *cfw_vietnamese_translate(const char *s)
