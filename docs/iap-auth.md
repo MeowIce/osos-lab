@@ -60,37 +60,6 @@ Both verifiers return `0` on success and non-zero on failure, and both are reach
 
 The verifier result is the sole gate: a `0` authenticates the accessory, anything else refuses it.
 
-## How the gate was found
-
-The firmware ships no iAP symbols, and this OSOS build is C++/vtable-dispatch heavy, which
-defeats the usual shortcuts. The working method:
-
-1. **Decrypted input.** The installer caches the decrypted, unpatched OSOS at
-   `~/.local/share/com.lukasgreicius.repriseos.installer/firmware/osos-2.0.5.bin` (SHA-256 matches
-   the pinned `inputs/osos.bin`). Imported with `tools/ghidra.py import --fresh` (annotated import
-   is currently broken, see note below).
-2. **String reconnaissance** located the accessory/auth vocabulary in the image:
-   `SERIALVERIFIER`/`RESISTORVERIFIER` (serial auth vs legacy resistor ID), the RTXC events
-   `S_TOPACCPKTRCVD`/`S_BTMACCPKTRCVD`/`S_SERIALIDRCVD`/`S_BTMREVERIFY`/`S_BTMVERCOMP`, and
-   `MikeyTask`/`HandleMikey*`. These confirmed the subsystem exists but are table-indexed, so they
-   gave no direct code cross-references.
-3. **Anchors, not strings.** Using the curated serial primitives `UART_WriteBytes` (`0x080b0bc0`)
-   and `Serial_WritePort1` (`0x080cf798`) as anchors, the iAP transmit stack resolved to
-   `FUN_08143a98` (frame TX; serial port handle at object `+0x14`), which directly calls the
-   packet accessors `FUN_080ec040`/`FUN_080ebd34`.
-4. **Call-graph climb.** The packet-field accessor `FUN_080ebd1c` is called by 36 handlers in the
-   `0x08186xxx`–`0x08189xxx` iAP lingo family. Decompiling the largest showed `FUN_08187e18`
-   issuing the General-Lingo auth requests (`0x38`, `0x14`, `0x17`) and managing the 0x24-byte
-   record table.
-5. **Target isolation.** Cross-referencing the record table (`0x08a2dc3c`) narrowed the readers to
-   a handful of accessors; decompiling them surfaced `FUN_081892b8` as the signature handler, whose
-   only two callees (`FUN_0812dca8`, `FUN_081592fc`) are the signature verifiers. Each is called
-   solely by `FUN_081892b8`, so patching them has no collateral effect.
-
-The analysis was driven by headless Ghidra scripts (xref dumps and batch decompilation) against
-the imported project, because `tools/ghidra.py export` only round-trips human annotations, not
-Ghidra's auto-generated strings and references.
-
 ## The patch
 
 Both verifiers are forced to report success. Because each is exclusive to the signature handler,
@@ -129,27 +98,7 @@ the authoritative entry bytes of the functions in this exact 2.0.5 image.
 
 ## Behaviour and limits
 
-- A home-made accessory must still **walk the handshake** — reply to `GetDevAuthenticationInfo`
-  with `RetDevAuthenticationInfo` (`0x15`) and to `GetDevAuthenticationSignature` with
-  `RetDevAuthenticationSignature` (`0x18`) — but the contents no longer need to be chip-signed;
-  any bytes pass, and the accessory reaches the authenticated state.
-- If a specific lingo is refused for an accessory that never runs the handshake at all, the
-  follow-up is to force the per-command auth-state gate (reads of record `+4`, or the
-  `FUN_08185e18` promotion) rather than only the verifier. The verifier bypass is the core of
-  "no auth chip required".
-
-## Build and verify
-
-```sh
-python3.11 tools/setup.py        # prepares the arm-elf-eabi- toolchain under vendor/
-python3.11 tools/build.py osos-recipe --cross-prefix vendor/<toolchain>/bin/arm-elf-eabi-
-```
-
-`osos-recipe` compiles the payload (including `iap_auth.c`) and resolves the patch records without
-Apple inputs. Full assembly verifies the `PATCH_JUMP` expected words against the firmware bytes.
-
-## Note on Ghidra import
-
-The annotated import (`tools/ghidra.py import` without `--fresh`) currently fails on a
-`comments.jsonl` round-trip inconsistency for functions carrying the "Transferred from 2.0.4"
-plate-comment preface. Use `--fresh` until the committed analysis data is repaired.
+A home-made accessory must still **walk the handshake** — reply to `GetDevAuthenticationInfo`
+with `RetDevAuthenticationInfo` (`0x15`) and to `GetDevAuthenticationSignature` with
+`RetDevAuthenticationSignature` (`0x18`) — but the contents no longer need to be chip-signed;
+any bytes pass, and the accessory reaches the authenticated state.
