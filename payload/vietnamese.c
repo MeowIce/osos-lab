@@ -210,7 +210,7 @@ static const struct vi_entry translations[] = {
     {"Clicker", "Tiếng bấm"},
     {"Dark Mode", "Giao diện tối"},
     {"Sleep Timer", "Hẹn giờ ngủ"},
-    {"Sleep", "Hẹn giờ ngủ"},
+    {"Sleep", "Ngủ"},
     {"Sort By", "Sắp xếp theo"},
     {"Scrolling Speed", "Tốc độ cuộn"},
 
