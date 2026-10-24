@@ -154,6 +154,23 @@ int cfw_eq_action(const char *action, uint32_t argument)
     return !strcmp(action, "CFW_EQ_Open");
 }
 
+int cfw_clicker_action(void *controller, const char *action, uint32_t argument)
+{
+    (void)controller;
+    (void)action;
+    (void)argument;
+    return 0;
+}
+
+int cfw_clicker_property(void *model, uint32_t type, uint32_t property, uintptr_t *out)
+{
+    (void)model;
+    (void)type;
+    (void)property;
+    (void)out;
+    return 0;
+}
+
 void cfw_album_artists_menu_adjust_property(uint32_t type, uint32_t property, uintptr_t *out)
 {
     assert(type == OSOS_PROPERTY_COUNT && property == 123 && *out == 5);

@@ -45,6 +45,7 @@ RepriseOS package and builds a companion using that iPod's identity.
 - EU volume limit removal for European iPods.
 - Song Info from song and Now Playing context menus.
 - Album Artists browsing with Artist fallback and configurable menu visibility.
+- Clicker output options (Off, Speaker, Headphones, Both) in Settings.
 - Dark Mode (work in progress), with an On/Off toggle below Brightness in Settings.
 
 **Album Artists** groups tracks by their Album Artist tag, using Artist when that
