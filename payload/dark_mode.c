@@ -15,6 +15,9 @@ enum {
     COVER_FLOW_BORDER_DARK = 0x38,
     TEXT_DARK_MAX = 0x80,
     TEXT_LIGHT_BASE = 0xe8,
+    ACCENT_FILL_LIGHT = 0x236cc5,
+    ACCENT_TEXT_LIGHT = 0x3185d0,
+    ACCENT_DARK = 0x00a1ff,
 };
 
 static unsigned int enabled;
@@ -95,6 +98,30 @@ const void *cfw_dark_mode_color(uint32_t id, const void *color)
     return &light;
 }
 
+/*
+ * Brightens the light-mode blues, which are too dim on a dark background. Writes the
+ * accent to `out` in the same channel order as `color` (matched as RGB or BGR) and
+ * keeps the alpha byte.
+ */
+static int accent_color(const unsigned char *color, uint32_t light, unsigned char *out)
+{
+    uint32_t rgb = (color[0] << 16) | (color[1] << 8) | color[2];
+    uint32_t bgr = (color[2] << 16) | (color[1] << 8) | color[0];
+    if (rgb == light) {
+        out[0] = (ACCENT_DARK >> 16) & 0xff;
+        out[1] = (ACCENT_DARK >> 8) & 0xff;
+        out[2] = ACCENT_DARK & 0xff;
+    } else if (bgr == light) {
+        out[0] = ACCENT_DARK & 0xff;
+        out[1] = (ACCENT_DARK >> 8) & 0xff;
+        out[2] = (ACCENT_DARK >> 16) & 0xff;
+    } else {
+        return 0;
+    }
+    out[3] = color[3];
+    return 1;
+}
+
 PATCH_ARM void cfw_dark_mode_fill(void *surface, const void *rect,
                                 const unsigned char *color, uint32_t mode,
                                 void *clip)
@@ -107,6 +134,10 @@ PATCH_ARM void cfw_dark_mode_fill(void *surface, const void *rect,
     /* CoverFlow_Backside_Border_Color (COLR 0x0dad05d8). */
     else if (enabled && color[0] == 0x7e && color[1] == 0x81 && color[2] == 0x83)
         shade = COVER_FLOW_BORDER_DARK;
+    else if (enabled && accent_color(color, ACCENT_FILL_LIGHT, mapped)) {
+        osos_surface_fill_rect(surface, rect, mapped, mode, clip);
+        return;
+    }
     if (shade >= 0) {
         mapped[0] = mapped[1] = mapped[2] = shade;
         mapped[3] = color[3];
@@ -134,8 +165,11 @@ PATCH_ARM uint32_t cfw_dark_mode_reflection_blend(uint32_t pixel, uint32_t backg
 PATCH_ARM void cfw_dark_mode_text_color(void *context, const unsigned char *color)
 {
     unsigned char mapped[4];
-    if (enabled && color[0] == color[1] && color[1] == color[2] &&
-        color[0] <= TEXT_DARK_MAX) {
+    if (enabled && (accent_color(color, ACCENT_FILL_LIGHT, mapped) ||
+                    accent_color(color, ACCENT_TEXT_LIGHT, mapped))) {
+        color = mapped;
+    } else if (enabled && color[0] == color[1] && color[1] == color[2] &&
+               color[0] <= TEXT_DARK_MAX) {
         mapped[0] = mapped[1] = mapped[2] = TEXT_LIGHT_BASE - color[0] / 2;
         mapped[3] = color[3];
         color = mapped;
