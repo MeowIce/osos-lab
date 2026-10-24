@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include "assets.h"
 #include "dark_mode.h"
+#include "vietnamese.h"
 #include "osos.h"
 #include "patch.h"
 
@@ -20,6 +21,13 @@ PATCH_ARM const void *cfw_bitmap_resource_get(void *service, uint32_t type, uint
     const void *resource = cfw_bitmap_resource_get_original(service, type, id);
     if (type == OSOS_RESOURCE_COLR)
         resource = cfw_dark_mode_color(id, resource);
+    if (type == OSOS_RESOURCE_STR && resource) {
+        if (cfw_vietnamese_enabled()) {
+            const char *vi = cfw_vietnamese_translate((const char *)resource);
+            if (vi)
+                return vi;
+        }
+    }
     return resource;
 }
 

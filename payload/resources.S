@@ -17,7 +17,5 @@ cfw_resource_hook:
     blx r12
     mov r0, r4
     bl cfw_install_resources
-    mov r0, r4
-    bl cfw_install_vietnamese
     pop {r4, pc}
 .ltorg

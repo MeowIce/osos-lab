@@ -34,6 +34,8 @@ static void *get_pointer(void *base, unsigned offset)
 }
 
 int cfw_dark_mode_enabled(void) { return dark; }
+int cfw_vietnamese_enabled(void) { return 0; }
+const char *cfw_vietnamese_translate(const char *s) { return s; }
 
 const void *cfw_dark_mode_color(uint32_t id, const void *color)
 {
