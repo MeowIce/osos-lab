@@ -4,6 +4,7 @@
 #include "album_artists_ui.h"
 #include "patch.h"
 #include "preferences.h"
+#include "vietnamese.h"
 
 static uint32_t visible = 2;
 static int loaded;
@@ -54,8 +55,15 @@ PATCH_ARM int cfw_album_artists_menu_item(void *model, uint32_t type,
 {
     typedef int (*native)(void *, uint32_t, uint32_t, uint32_t, uintptr_t *);
     native get = (native)OSOS_SETTINGS_INDEXED_PROPERTY;
-    if (property != 0x8909 && property != 0x890a)
-        return get(model, type, property, index, out);
+    if (property != 0x8909 && property != 0x890a) {
+        int res = get(model, type, property, index, out);
+        if (res && type == OSOS_PROPERTY_STRING && out && *out && cfw_vietnamese_enabled()) {
+            const char *vi = cfw_vietnamese_translate((const char *)*out);
+            if (vi)
+                *out = (uintptr_t)vi;
+        }
+        return res;
+    }
     unsigned menu = property == 0x890a;
     uint32_t count = menu ? 14 : OSOS_MAIN_MENU_SETTINGS_COUNT + 1;
     if (index >= count)
@@ -76,6 +84,11 @@ PATCH_ARM int cfw_album_artists_menu_item(void *model, uint32_t type,
         uint32_t icon = checked ? OSOS_MENU_CHECKED_BITMAP + selected :
                         selected && index == count - 1 ? OSOS_MENU_RESET_BITMAP : 0;
         *out = icon ? osos_ui_bitmap(icon) : 0;
+    }
+    if (type == OSOS_PROPERTY_STRING && out && *out && cfw_vietnamese_enabled()) {
+        const char *vi = cfw_vietnamese_translate((const char *)*out);
+        if (vi)
+            *out = (uintptr_t)vi;
     }
     return result;
 }
