@@ -23,13 +23,7 @@ PATCH_ARM int cfw_settings_property(void *model, uint32_t type,
         cfw_vietnamese_property(type, property, out))
         return 1;
     int result = osos_settings_property(model, type, property, out);
-    if (result) {
+    if (result)
         cfw_album_artists_menu_adjust_property(type, property, out);
-        if (type == OSOS_PROPERTY_STRING && out && *out && cfw_vietnamese_enabled()) {
-            const char *vi = cfw_vietnamese_translate((const char *)*out);
-            if (vi)
-                *out = (uintptr_t)vi;
-        }
-    }
     return result;
 }
