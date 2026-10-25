@@ -263,6 +263,34 @@ static void draw_progress_bar(void *view, uint32_t current_ms, uint32_t duration
     (void)current_ms;
     (void)duration_ms;
 }
+
+static int mock_timer_started;
+static void cfw_lyrics_ensure_timer(void *view)
+{
+    if (!view)
+        return;
+    uint32_t *state = (uint32_t *)((uint8_t *)view + 500 + 32);
+    if (*state != 0x72756e20) {
+        *state = 0x72756e20;
+        mock_timer_started = 1;
+    }
+}
+#endif
+
+#ifndef HOST_TEST
+static void cfw_lyrics_ensure_timer(void *view)
+{
+    if (!view)
+        return;
+    void *timer = (uint8_t *)view + 500;
+    uint32_t *state = (uint32_t *)((uint8_t *)timer + 32);
+    if (*state != 0x72756e20) {
+        typedef void (*set_dur_fn)(void *, uint32_t);
+        typedef void (*start_fn)(void *);
+        ((set_dur_fn)OSOS_TIMER_SET_DURATION)(timer, 40);
+        ((start_fn)OSOS_TIMER_START)(timer);
+    }
+}
 #endif
 
 int cfw_text_view_draw_original(void *view, const char *text, void *context);
@@ -277,6 +305,8 @@ PATCH_ARM int cfw_text_view_draw(void *view, const char *text, void *context)
         const char *win = cfw_lyrics_get_display_text(text, 0);
         return cfw_text_view_draw_original(view, win, context);
     }
+
+    cfw_lyrics_ensure_timer(view);
 
     struct osos_player *player = osos_player_get();
     uint32_t current_ms = player ? osos_player_get_position(player) : 0;
@@ -312,6 +342,31 @@ PATCH_ARM int cfw_text_view_draw(void *view, const char *text, void *context)
             target = (int32_t)global_lyrics.count - 1;
     }
 
+    /* Animation transition detection */
+    if (target != global_lyrics.anim_prev_target) {
+        if (global_lyrics.anim_prev_target >= 0 && target == global_lyrics.anim_prev_target + 1) {
+            global_lyrics.anim_start_ms = current_ms;
+        } else {
+            global_lyrics.anim_start_ms = 0;
+        }
+        global_lyrics.anim_prev_target = target;
+    }
+
+    /* Apple Music style cubic ease-out scroll offset (32px -> 0px over 280ms) */
+    int32_t offset_y = 0;
+    if (global_lyrics.anim_start_ms && current_ms >= global_lyrics.anim_start_ms) {
+        uint32_t elapsed = current_ms - global_lyrics.anim_start_ms;
+        if (elapsed < 280) {
+            uint32_t t_norm = (elapsed * 256) / 280;
+            uint32_t inv = 256 - t_norm;
+            uint32_t inv3 = (inv * inv * inv) >> 16;
+            uint32_t eased = 256 - inv3;
+            offset_y = (int32_t)(((256 - eased) * 32) >> 8);
+        } else {
+            global_lyrics.anim_start_ms = 0;
+        }
+    }
+
     char prev_buf[256];
     char active_buf[256];
     char next_buf[256];
@@ -328,25 +383,44 @@ PATCH_ARM int cfw_text_view_draw(void *view, const char *text, void *context)
     void *orig_font = *font_ptr;
     void *bold_font = get_bold_font();
 
-    /* Pass 1: Previous line (small regular font) */
-    rect[1] = orig_y + 6;
+    /* Optional Pass 0: Line target - 2 sliding out above during animation */
+    if (offset_y > 4 && target >= 2) {
+        char exit_buf[256];
+        cfw_lyrics_get_line_text(&global_lyrics, target - 2, exit_buf, sizeof(exit_buf), 0);
+        int32_t exit_y = orig_y - 26 + offset_y;
+        if (exit_y >= orig_y) {
+            rect[1] = exit_y;
+            rect[3] = 26;
+            *font_ptr = orig_font;
+            cfw_text_view_draw_original(view, exit_buf, context);
+        }
+    }
+
+    /* Pass 1: Previous line (small regular font, sliding up from center slot) */
+    rect[1] = orig_y + 6 + offset_y;
     rect[3] = 26;
     *font_ptr = orig_font;
     cfw_text_view_draw_original(view, prev_buf, context);
 
-    /* Pass 2: Active line (larger bold font!) */
-    rect[1] = orig_y + 36;
+    /* Pass 2: Active line (larger bold font, sliding up into active center slot!) */
+    rect[1] = orig_y + 36 + offset_y;
     rect[3] = 52;
     *font_ptr = bold_font ? bold_font : orig_font;
     cfw_text_view_draw_original(view, active_buf, context);
 
-    /* Pass 3: Next line (small regular font) */
-    rect[1] = orig_y + 92;
-    rect[3] = 26;
-    *font_ptr = orig_font;
-    cfw_text_view_draw_original(view, next_buf, context);
+    /* Pass 3: Next line (small regular font, sliding in from below) */
+    int32_t next_y = orig_y + 92 + offset_y;
+    int32_t max_h = (orig_y + 124) - next_y;
+    if (max_h > 26)
+        max_h = 26;
+    if (max_h > 6) {
+        rect[1] = next_y;
+        rect[3] = max_h;
+        *font_ptr = orig_font;
+        cfw_text_view_draw_original(view, next_buf, context);
+    }
 
-    /* Pass 4: Time indicators */
+    /* Pass 4: Time indicators (fixed position) */
     rect[1] = orig_y + 128;
     rect[3] = 18;
     *font_ptr = orig_font;
@@ -395,6 +469,8 @@ void cfw_lyrics_reset(struct cfw_lyrics_state *state)
     state->user_scrolled = 0;
     state->scroll_offset = 0;
     state->last_user_scroll_ms = 0;
+    state->anim_prev_target = -1;
+    state->anim_start_ms = 0;
     state->window_buffer[0] = '\0';
     last_tick_sec = 0;
 }

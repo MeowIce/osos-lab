@@ -24,6 +24,8 @@ struct cfw_lyrics_state {
     int user_scrolled;
     int32_t scroll_offset;
     uint32_t last_user_scroll_ms;
+    int32_t anim_prev_target;
+    uint32_t anim_start_ms;
     char window_buffer[CFW_LYRICS_BUFFER_SIZE];
 };
 

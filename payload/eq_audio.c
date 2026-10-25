@@ -87,7 +87,6 @@ PATCH_ARM void cfw_eq_load(void *state)
 PATCH_ARM void cfw_eq_process(void *state, int16_t *samples, uint32_t frames,
                               int16_t **output, uint32_t *output_frames)
 {
-    cfw_lyrics_tick();
     *output = samples;
     *output_frames = frames;
     if (osos_eq_preset(state) != CFW_EQ_DSP_PRESET) {

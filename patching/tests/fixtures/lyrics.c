@@ -217,7 +217,7 @@ int main(void)
     assert(strstr(time_buf, "-01:55") != NULL);
 
     /* 10. Multi-pass TextView draw with bold font & geometry test */
-    uint8_t mock_view[512] = {0};
+    uint8_t mock_view[600] = {0};
     int32_t *vrect = (int32_t *)(mock_view + 0x80);
     void **vfont = (void **)(mock_view + 256);
     vrect[0] = 10;
@@ -227,10 +227,12 @@ int main(void)
     *vfont = (void *)0x12345678;
 
     mock_draw_passes = 0;
+    mock_timer_started = 0;
     mock_playback_ms = 25000;
     mock_playback_duration = 180000;
     cfw_text_view_draw(mock_view, test_lrc, NULL);
 
+    assert(mock_timer_started == 1);
     assert(mock_draw_passes == 4);
     /* Pass 1 (previous line): orig font */
     assert(mock_pass_fonts[0] == (void *)0x12345678);
@@ -246,6 +248,23 @@ int main(void)
     assert(mock_pass_fonts[3] == (void *)0x12345678);
     assert(strstr(mock_pass_texts[3], "00:25") != NULL);
     assert(strstr(mock_pass_texts[3], "-02:35") != NULL);
+
+    /* 10b. Apple Music style scroll animation */
+    /* Advance track from line 1 to line 2 (starts at 01:05.123 = 65123ms) */
+    mock_playback_ms = 65150; /* 27ms into transition */
+    mock_draw_passes = 0;
+    cfw_text_view_draw(mock_view, test_lrc, NULL);
+    assert(global_lyrics.anim_start_ms == 65150);
+    /* During animation, active line 2 should have offset_y > 0 sliding into center */
+    assert(mock_pass_y[1] > 20 + 36);
+
+    /* Settle animation after 300ms */
+    mock_playback_ms = 65500;
+    mock_draw_passes = 0;
+    cfw_text_view_draw(mock_view, test_lrc, NULL);
+    assert(global_lyrics.anim_start_ms == 0);
+    assert(mock_pass_y[1] == 20 + 36);
+    assert(strstr(mock_pass_texts[1], "▶ Third and final line") != NULL);
 
     /* Restoration of view geometry and font */
     assert(*vfont == (void *)0x12345678);
