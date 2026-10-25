@@ -170,7 +170,7 @@ static const struct vi_entry translations[] = {
     {"None", "Tắt"},
     {"Speaker", "Loa"},
     {"Headphones", "Tai nghe"},
-    {"Both", "Cả hai"},
+    {"Both", "C.hai"},
     {"2 Seconds", "2 Giây"},
     {"3 Seconds", "3 Giây"},
     {"5 Seconds", "5 Giây"},

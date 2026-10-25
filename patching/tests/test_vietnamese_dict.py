@@ -50,6 +50,7 @@ class VietnameseTranslationTests(unittest.TestCase):
         self.assertIn('{"None", "Tắt"}', source)
         self.assertIn('{"Beep", "Bíp"}', source)
         self.assertIn('{"Songs", "Bài hát"}', source)
+        self.assertIn('{"Both", "C.hai"}', source)
         self.assertNotIn('{"Widescreen", "Màn hình rộng"}', source)
         self.assertNotIn('{"Ask", "Hỏi"}', source)
         self.assertNotIn('{"AM", "Sa"}', source)
