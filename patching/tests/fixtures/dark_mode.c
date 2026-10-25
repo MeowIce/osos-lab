@@ -5,6 +5,9 @@
 #define _Static_assert(...)
 #include "../../../payload/osos.h"
 #include "../../../payload/dark_mode.h"
+#include "dark_mode_ui.h"
+#include "custom_eq_ui.h"
+#include "cfw_info_ui.h"
 #undef _Static_assert
 #define CFW_PATCH_H
 #define PATCH_ARM
@@ -42,6 +45,7 @@ static struct {
 
 static int now_playing, now_playing_available = 1, icon_notifications;
 static unsigned icon_invalidations;
+static unsigned preview_invalidations;
 static unsigned char drawn[4];
 
 static int file_open(const struct osos_path *path, int mode, void **handle)
@@ -98,7 +102,9 @@ static void *now_playing_model(void)
 static void invalidate(void)
 {
     assert(icon_invalidations == (now_playing_available ? 3u : 0u));
+    assert(preview_invalidations == 3);
     icon_invalidations = 0;
+    preview_invalidations = 0;
     redraws++;
 }
 
@@ -115,6 +121,12 @@ static void notify(void *value, uint32_t type, uint32_t property)
         return;
     }
     assert(value == &model && type == OSOS_NOTIFY_ALL);
+    if (property == CFW_DarkMode_PreviewImage || property == CFW_DarkMode_PreviewText) {
+        unsigned bit = property == CFW_DarkMode_PreviewImage ? 1 : 2;
+        assert(!(preview_invalidations & bit));
+        preview_invalidations |= bit;
+        return;
+    }
     (void)property;
     notifications++;
 }
@@ -150,6 +162,20 @@ static uint32_t blend(uint32_t pixel, uint32_t background, int weight)
     return 0x1234;
 }
 
+static uintptr_t resource(uint32_t id)
+{
+    return id;
+}
+
+const void *cfw_resource_bitmap(uint32_t id)
+{
+    return id == CFW_DarkMode_Moon || id == CFW_EQ_Icon || id == CFW_Info_Icon
+               ? (const void *)(uintptr_t)id
+               : NULL;
+}
+
+#define osos_ui_string resource
+#define osos_ui_bitmap resource
 #define osos_file_open file_open
 #define osos_file_read file_read
 #define osos_file_write file_write
@@ -208,13 +234,6 @@ static void set_preference(void *object, uint32_t property, uint32_t type,
     clicker_value = value;
 }
 
-static uintptr_t resource(uint32_t id)
-{
-    return id;
-}
-
-#define osos_ui_string resource
-#define osos_ui_bitmap resource
 #include "../../../payload/clicker.c"
 
 void cfw_album_artists_menu_adjust_property(uint32_t type, uint32_t property,
@@ -255,6 +274,11 @@ static void check_clicker(void)
 int main(void)
 {
     uintptr_t value = 0;
+    const uint32_t icons[] = {CFW_EQ_Icon, CFW_Info_Icon};
+    for (unsigned i = 0; i < sizeof(icons) / sizeof(icons[0]); i++) {
+        assert(cfw_settings_property(&model, OSOS_RESOURCE_BMAP, icons[i], &value));
+        assert(value == icons[i] && !stock_properties);
+    }
     cfw_dark_mode_load();
     assert(!cfw_dark_mode_enabled() && !closes);
     assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, CFW_DarkMode_Value,
@@ -293,6 +317,12 @@ int main(void)
             assert(cfw_settings_action(&controller, "CFW_DarkMode_Toggle", 0));
         int dark = cycle == 1;
         assert(cfw_dark_mode_enabled() == dark);
+        assert(cfw_settings_property(&model, OSOS_RESOURCE_BMAP,
+                                     CFW_DarkMode_PreviewImage, &value));
+        assert(value == (dark ? CFW_DarkMode_Moon : IMG_SUN));
+        assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING,
+                                     CFW_DarkMode_PreviewText, &value));
+        assert(value == (dark ? CFW_DarkMode_DarkLabel : CFW_DarkMode_LightLabel));
         for (unsigned i = 0; i < sizeof(fills) / sizeof(fills[0]); i++) {
             cfw_dark_mode_fill(&surface, &model, fills[i].light, 7, &controller);
             assert(
@@ -354,5 +384,6 @@ int main(void)
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
     assert(!cfw_dark_mode_enabled() && disk_record == DARK_MODE_OFF_RECORD);
     assert(redraws == 4 && notifications == 4);
+    assert(!preview_invalidations);
     check_clicker();
 }

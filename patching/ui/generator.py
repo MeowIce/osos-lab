@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Read UI sources and write generated C resources and headers."""
 
+from ..bitmap import encode_bmap, read_png
 from .codegen import emit_bindings, emit_header, emit_resources
 from .compiler import compile_document
 from .parser import read
@@ -28,7 +29,15 @@ def generate(resources, sources, directory, revision, version="0.0.0-dev"):
         text = ""
         if document.root and document.root.kind == "text":
             text = page_text(source, document.root, revision, version)
+        bitmap_ids = {}
+        for name, (filename, bitmap_format) in document.bitmaps.items():
+            bitmap = encode_bmap(
+                *read_png(source.parent / filename), gray8=bitmap_format == "gray8"
+            )
+            bitmap_ids[name] = resource_id = resources.allocate(name)
+            resources.add("BMap", resource_id, bitmap)
         compiled = compile_document(resources, document, text)
+        compiled.string_ids.update(bitmap_ids)
         if document.root:
             lines.extend(emit_bindings(document, compiled.fields, compiled.actions))
         (directory / (source.stem + "_ui.h")).write_text(

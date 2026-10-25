@@ -7,6 +7,7 @@
 #include "cfw.h"
 #include "preferences.h"
 #include "patch.h"
+#include "resources.h"
 
 enum {
     DARK_MODE_OFF_RECORD = 0x304b5244, /* DRK0 */
@@ -19,6 +20,7 @@ enum {
     ACCENT_FILL_LIGHT = 0x236cc5,
     ACCENT_TEXT_LIGHT = 0x3185d0,
     ACCENT_DARK = 0x00a1ff,
+    IMG_SUN = 0x0dad0bff, /* Settings_Brightness_Image */
 };
 
 static const struct osos_path settings_path = {0, "iPod_Control\\Device\\CFWDark"};
@@ -45,10 +47,24 @@ static int save(unsigned int value)
 
 int cfw_dark_mode_property(uint32_t type, uint32_t property, uintptr_t *out)
 {
-    if (type != OSOS_PROPERTY_STRING || property != CFW_DarkMode_Value)
+    if (type == OSOS_RESOURCE_BMAP && property == CFW_DarkMode_PreviewImage) {
+        *out = cfw_dark_mode_enabled()
+                   ? (uintptr_t)cfw_resource_bitmap(CFW_DarkMode_Moon)
+                   : osos_ui_bitmap(IMG_SUN);
+        return 1;
+    }
+    if (type != OSOS_PROPERTY_STRING)
         return 0;
-    *out = osos_settings_on_off(cfw_dark_mode_enabled());
-    return 1;
+    if (property == CFW_DarkMode_Value) {
+        *out = osos_settings_on_off(cfw_dark_mode_enabled());
+        return 1;
+    }
+    if (property == CFW_DarkMode_PreviewText) {
+        *out = osos_ui_string(cfw_dark_mode_enabled() ? CFW_DarkMode_DarkLabel
+                                                      : CFW_DarkMode_LightLabel);
+        return 1;
+    }
+    return 0;
 }
 
 int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument)
@@ -63,8 +79,10 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
         return 1;
     if (save(next)) {
         cfw_assets_set_enabled(next);
-        osos_model_notify(osos_settings_model(controller), OSOS_NOTIFY_ALL,
-                          CFW_DarkMode_Value);
+        void *settings = osos_settings_model(controller);
+        osos_model_notify(settings, OSOS_NOTIFY_ALL, CFW_DarkMode_Value);
+        osos_model_notify(settings, OSOS_NOTIFY_ALL, CFW_DarkMode_PreviewImage);
+        osos_model_notify(settings, OSOS_NOTIFY_ALL, CFW_DarkMode_PreviewText);
         void *now_playing = osos_now_playing_model();
         if (now_playing) {
             /* Match Apple's playback-state notifications to reload cached icons. */

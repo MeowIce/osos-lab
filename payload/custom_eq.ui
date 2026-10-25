@@ -72,6 +72,8 @@
     </menu>
     <action id="CFW_EQ_Save" title="Save settings" values="cfw_eq_save_status"/>
   </menu>
-  <settings-entry menu="CFW_EQ" after="SettingsMenu_ListItem_EQ" open="CFW_EQ_Open"/>
+  <bitmap id="CFW_EQ_Icon" file="assets/settings-eq.png" format="gray8"/>
+  <settings-entry menu="CFW_EQ" after="SettingsMenu_ListItem_EQ" open="CFW_EQ_Open"
+                  preview="image" image="CFW_EQ_Icon" caption="Adjust your sound"/>
   <string id="CFW_EQ_PRESET_NAME" text="Custom"/>
 </ui>

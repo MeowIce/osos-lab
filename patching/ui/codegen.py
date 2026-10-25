@@ -90,7 +90,9 @@ def emit_resources(resources):
     entries = []
     for i, ((kind, resource_id), data) in enumerate(resources.added.items()):
         data = Resource(data)
-        lines.append(f"static const unsigned char resource_{i}[] = {{")
+        # Native BMap readers load header fields and pixels as halfwords/words.
+        alignment = " __attribute__((aligned(4)))" if kind == "BMap" else ""
+        lines.append(f"static const unsigned char resource_{i}[]{alignment} = {{")
         for start in range(0, len(data), 16):
             lines.append(
                 "    "
