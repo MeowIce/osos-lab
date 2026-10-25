@@ -35,10 +35,15 @@ class VietnameseTranslationTests(unittest.TestCase):
 
     def test_toggle_values_are_font_safe(self):
         source = Path("payload/vietnamese.c").read_text(encoding="utf-8")
-        # Ensure toggle values don't use unsupported compound diacritics
-        self.assertIn('{"All", "Tất cả"}', source)
-        self.assertIn('{"One", "1 bài"}', source)
+        assets = Path("payload/assets.c").read_text(encoding="utf-8")
+        # Ensure toggle values use font-safe glyphs
+        self.assertIn('{"All", "Bật"}', source)
+        self.assertIn('{"One", "1"}', source)
+        self.assertIn('{"None", "Tắt"}', source)
+        self.assertIn('{"Beep", "Bíp"}', source)
         self.assertIn('{"Songs", "Bài hát"}', source)
+        self.assertIn('id == 0x0dad0bf7', assets)
+        self.assertIn('return "Ca kh\\xc3\\xba" "c";', assets)
 
     def test_stock_toggle_font_preserved(self):
         sites = Path("payload/patches/sites.h").read_text()
