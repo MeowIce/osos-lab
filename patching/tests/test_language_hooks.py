@@ -8,10 +8,10 @@ class LanguageHooksTests(unittest.TestCase):
         sites = Path("payload/patches/sites.h").read_text()
         patches = Path("payload/patches/patches.c").read_text()
         
-        self.assertIn("#define OSOS_LANGUAGE_COUNT_WORD 0x081e2a64", sites)
-        self.assertIn("#define OSOS_LANGUAGE_NAME_ENTRY 0x081e1080", sites)
-        self.assertIn("#define OSOS_LANGUAGE_SELECT_CALL 0x08211540", sites)
-        self.assertIn("#define OSOS_LANGUAGE_CURRENT_INDEX_ENTRY 0x081e13b8", sites)
+        self.assertIn("#define OSOS_LANGUAGE_COUNT_WORD 0x081e388c", sites)
+        self.assertIn("#define OSOS_LANGUAGE_NAME_ENTRY 0x081e1ea8", sites)
+        self.assertIn("#define OSOS_LANGUAGE_SELECT_CALL 0x0821e380", sites)
+        self.assertIn("#define OSOS_LANGUAGE_CURRENT_INDEX_ENTRY 0x081e21e0", sites)
 
         self.assertIn("PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a01015, 0xe3a01016);", patches)
         self.assertIn("PATCH_JUMP(OSOS_LANGUAGE_NAME_ENTRY, 0xe92d4010, 0xe1a04001, cfw_language_name);", patches)
@@ -20,7 +20,7 @@ class LanguageHooksTests(unittest.TestCase):
 
     def test_language_trampoline_and_headers(self):
         sites = Path("payload/patches/sites.h").read_text()
-        self.assertIn("#define OSOS_LANGUAGE_SET 0x081e1444", sites)
+        self.assertIn("#define OSOS_LANGUAGE_SET 0x081e226c", sites)
 
         lang_h = Path("payload/language.h").read_text()
         self.assertIn("const char *cfw_language_name(void *service, uint32_t index);", lang_h)
