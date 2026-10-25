@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 
 #include "dark_mode.h"
+#include "assets.h"
 #include "dark_mode_ui.h"
 #include "osos.h"
 #include "cfw.h"
@@ -20,19 +21,20 @@ enum {
     ACCENT_DARK = 0x00a1ff,
 };
 
-static unsigned int enabled;
 static const struct osos_path settings_path = {0, "iPod_Control\\Device\\CFWDark"};
 
 int cfw_dark_mode_enabled(void)
 {
-    return enabled != 0;
+    return cfw_assets_enabled();
 }
 
 void cfw_dark_mode_load(void)
 {
     uint32_t record;
-    enabled = cfw_preferences_read(&settings_path, &record, sizeof(record)) &&
-              record == DARK_MODE_ON_RECORD;
+    int next = cfw_preferences_read(&settings_path, &record, sizeof(record)) &&
+               record == DARK_MODE_ON_RECORD;
+    if (next != cfw_assets_enabled() && cfw_assets_prepare())
+        cfw_assets_set_enabled(next);
 }
 
 static int save(unsigned int value)
@@ -45,7 +47,7 @@ int cfw_dark_mode_property(uint32_t type, uint32_t property, uintptr_t *out)
 {
     if (type != OSOS_PROPERTY_STRING || property != CFW_DarkMode_Value)
         return 0;
-    *out = osos_settings_on_off(enabled);
+    *out = osos_settings_on_off(cfw_dark_mode_enabled());
     return 1;
 }
 
@@ -56,8 +58,11 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
     if (argument == OSOS_ACTION_SUPPORT_QUERY)
         return 1;
 
-    if (save(!enabled)) {
-        enabled = !enabled;
+    int next = !cfw_dark_mode_enabled();
+    if (!cfw_assets_prepare())
+        return 1;
+    if (save(next)) {
+        cfw_assets_set_enabled(next);
         osos_model_notify(osos_settings_model(controller), OSOS_NOTIFY_ALL,
                           CFW_DarkMode_Value);
         void *now_playing = osos_now_playing_model();
@@ -67,6 +72,8 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
             osos_model_notify(now_playing, OSOS_RESOURCE_DRAW, 0x7f0d);
         }
         osos_ui_invalidate();
+    } else {
+        cfw_assets_cancel();
     }
     return 1;
 }
@@ -81,7 +88,7 @@ const void *cfw_dark_mode_color(uint32_t id, const void *color)
 {
     static uint32_t idle_background;
     static uint32_t light;
-    if (!enabled || !color)
+    if (!cfw_dark_mode_enabled() || !color)
         return color;
     if (!idle_background) {
         struct osos_string name;
@@ -114,6 +121,7 @@ PATCH_ARM void cfw_dark_mode_fill(void *surface, const void *rect,
                                   const unsigned char *color, uint32_t mode, void *clip)
 {
     unsigned char mapped[4];
+    int enabled = cfw_dark_mode_enabled();
     int shade = -1;
     if (enabled && color[0] == color[1] && color[1] == color[2] &&
         color[0] >= BACKGROUND_LIGHT_MIN)
@@ -133,7 +141,7 @@ PATCH_ARM void cfw_dark_mode_fill(void *surface, const void *rect,
 
 PATCH_ARM void cfw_dark_mode_clear_color(int red, int green, int blue, int alpha)
 {
-    if (enabled)
+    if (cfw_dark_mode_enabled())
         red = green = blue = BACKGROUND_DARK_BASE * 0x10000 / 255;
     osos_gles_clear_color(red, green, blue, alpha);
 }
@@ -141,7 +149,7 @@ PATCH_ARM void cfw_dark_mode_clear_color(int red, int green, int blue, int alpha
 PATCH_ARM uint32_t cfw_dark_mode_reflection_blend(uint32_t pixel, uint32_t background,
                                                   int weight)
 {
-    if (enabled)
+    if (cfw_dark_mode_enabled())
         background = ((BACKGROUND_DARK_BASE >> 3) << 11) |
                      ((BACKGROUND_DARK_BASE >> 2) << 5) | (BACKGROUND_DARK_BASE >> 3);
     return osos_rgb565_blend(pixel, background, weight);
@@ -150,6 +158,7 @@ PATCH_ARM uint32_t cfw_dark_mode_reflection_blend(uint32_t pixel, uint32_t backg
 PATCH_ARM void cfw_dark_mode_text_color(void *context, const unsigned char *color)
 {
     unsigned char mapped[4];
+    int enabled = cfw_dark_mode_enabled();
     if (enabled && (accent_color(color, ACCENT_FILL_LIGHT, mapped) ||
                     accent_color(color, ACCENT_TEXT_LIGHT, mapped))) {
         color = mapped;

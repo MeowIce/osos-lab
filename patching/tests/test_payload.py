@@ -36,10 +36,6 @@ class PayloadTests(unittest.TestCase):
             ):
                 with self.subTest(fixture=name):
                     executable = directory / name
-                    flags = []
-                    if name == "bitmap_assets":
-                        # Native pointers have four-byte alignment on a 64-bit host.
-                        flags.append("-fno-sanitize=alignment")
                     subprocess.run(
                         [
                             "cc",
@@ -49,7 +45,6 @@ class PayloadTests(unittest.TestCase):
                             "-Werror",
                             "-fsanitize=address,undefined",
                             "-g",
-                            *flags,
                             "-I",
                             str(directory),
                             "-I",

@@ -76,9 +76,10 @@ def build_recipe(
         version,
     )
     units = payload_units(source, generated_ui)
-    generated_assets = assets.generate(
-        resources, source / "assets/manifest.json", directory
-    )
+    catalog = json.loads((source.parent / "firmware/bitmaps.json").read_text())
+    if catalog["schema"] != 1 or catalog["input"] != fingerprint:
+        raise ValueError("Bitmap metadata does not match the pinned OSOS")
+    generated_assets = assets.generate(catalog, directory)
     units.append((str(generated_assets), []))
     units.append((str(source / "patches/patches.c"), []))
     code, symbols = compile_payload(
