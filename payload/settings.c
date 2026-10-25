@@ -17,8 +17,8 @@ PATCH_ARM int cfw_settings_action(void *controller, const char *action,
     return osos_settings_action(controller, action, argument);
 }
 
-PATCH_ARM int cfw_settings_property(void *model, uint32_t type,
-                                    uint32_t property, uintptr_t *out)
+PATCH_ARM int cfw_settings_property(void *model, uint32_t type, uint32_t property,
+                                    uintptr_t *out)
 {
     if (cfw_dark_mode_property(type, property, out) ||
         cfw_clicker_property(model, type, property, out))
