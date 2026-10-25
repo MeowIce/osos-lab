@@ -14,6 +14,7 @@ enum {
     BACKGROUND_LIGHT_MIN = 0xb0,
     BACKGROUND_DARK_BASE = 0x18,
     COVER_FLOW_BORDER_DARK = 0x38,
+    COVER_FLOW_BACKSIDE_BACKGROUND_ID = 0x0dad05d9,
     TEXT_DARK_MAX = 0x80,
     TEXT_LIGHT_BASE = 0xe8,
     ACCENT_FILL_LIGHT = 0x236cc5,
@@ -88,8 +89,15 @@ const void *cfw_dark_mode_color(uint32_t id, const void *color)
 {
     static uint32_t idle_background;
     static uint32_t light;
+    static uint32_t backside_background;
     if (!cfw_dark_mode_enabled() || !color)
         return color;
+    if (id == COVER_FLOW_BACKSIDE_BACKGROUND_ID) {
+        backside_background = (BACKGROUND_DARK_BASE << 16) |
+                              (BACKGROUND_DARK_BASE << 8) |
+                              BACKGROUND_DARK_BASE;
+        return &backside_background;
+    }
     if (!idle_background) {
         struct osos_string name;
         osos_string_init(&name, "NowPlaying_Idle_Background");

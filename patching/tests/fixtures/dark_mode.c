@@ -308,6 +308,10 @@ int main(void)
         assert(clear_alpha == 0x4321);
         assert(cfw_dark_mode_reflection_blend(0xabcd, 0xffff, 0x8000) == 0x1234);
         assert(blend_background == (dark ? 0x18c3u : 0xffffu));
+        uint32_t stock_backside = 0x00ffffff;
+        const uint32_t *resolved_backside =
+            cfw_dark_mode_color(COVER_FLOW_BACKSIDE_BACKGROUND_ID, &stock_backside);
+        assert(*resolved_backside == (dark ? 0x00181818u : 0x00ffffffu));
         cfw_dark_mode_load();
         assert(cfw_dark_mode_enabled() == dark);
     }
