@@ -140,3 +140,10 @@ PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a00015, 0xe3a00016);
 PATCH_JUMP(OSOS_LANGUAGE_NAME_ENTRY, 0xe92d4010, 0xe1a04001, cfw_language_name);
 PATCH_CALL(OSOS_LANGUAGE_SELECT_CALL, OSOS_LANGUAGE_SET, cfw_language_select);
 PATCH_JUMP(OSOS_LANGUAGE_CURRENT_INDEX_ENTRY, 0xe92d4010, 0xe5900378, cfw_language_current_index);
+
+/* iAP accessory authentication bypass: force both device-signature verifiers to
+ * report success so accessories authenticate without a Made-for-iPod coprocessor. */
+/* stmdb sp!,{r4-r9,lr}; sub sp,sp,#0x6c */
+PATCH_JUMP(OSOS_IAP_AUTH_VERIFY_A, 0xe92d43f0, 0xe24dd06c, cfw_iap_auth_verify);
+/* stmdb sp!,{r2,r3,r4,lr}; cmp r1,#0 */
+PATCH_JUMP(OSOS_IAP_AUTH_VERIFY_B, 0xe92d401c, 0xe3510000, cfw_iap_auth_verify);

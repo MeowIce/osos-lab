@@ -252,17 +252,22 @@ int main(void)
     assert(!strcmp((const char *)value, "Songs"));
 
     const unsigned char fills[][4] = {
-        {255, 255, 255, 173}, {0x7e, 0x81, 0x83, 127}, {35, 108, 196, 91},
+        {255, 255, 255, 173}, {0x7e, 0x81, 0x83, 127}, {35, 108, 196, 91}, {0x23, 0x6c, 0xc5, 91},
     };
-    const unsigned char texts[][4] = {{0, 0, 0, 123}, {255, 255, 255, 255}};
+    const unsigned char texts[][4] = {
+        {0, 0, 0, 123}, {255, 255, 255, 255}, {0x31, 0x85, 0xd0, 77}, {0xd0, 0x85, 0x31, 77},
+    };
     for (int cycle = 0; cycle < 3; cycle++) {
         if (cycle)
             assert(cfw_settings_action(&controller, "CFW_DarkMode_Toggle", 0));
         int dark = cycle == 1;
         assert(cfw_dark_mode_enabled() == dark);
-        for (unsigned i = 0; i < 3; i++) {
+        for (unsigned i = 0; i < 4; i++) {
             cfw_dark_mode_fill(&surface, &model, fills[i], 7, &controller);
-            if (dark && i < 2) {
+            if (dark && i == 3) {
+                assert(drawn[0] == 0x00 && drawn[1] == 0xa1 && drawn[2] == 0xff);
+                assert(drawn[3] == fills[i][3]);
+            } else if (dark && i < 2) {
                 unsigned char shade = i ? 0x38 : 0x18;
                 assert(drawn[0] == shade && drawn[1] == shade && drawn[2] == shade);
                 assert(drawn[3] == fills[i][3]);
@@ -270,9 +275,15 @@ int main(void)
                 assert(!memcmp(drawn, fills[i], 4));
             }
         }
-        for (unsigned i = 0; i < 2; i++) {
+        for (unsigned i = 0; i < 4; i++) {
             cfw_dark_mode_text_color(&surface, texts[i]);
-            assert(drawn[0] == (dark && !i ? 0xe8 : texts[i][0]));
+            if (dark && i == 2) {
+                assert(drawn[0] == 0x00 && drawn[1] == 0xa1 && drawn[2] == 0xff);
+            } else if (dark && i == 3) {
+                assert(drawn[0] == 0xff && drawn[1] == 0xa1 && drawn[2] == 0x00);
+            } else {
+                assert(drawn[0] == (dark && !i ? 0xe8 : texts[i][0]));
+            }
             assert(drawn[3] == texts[i][3]);
         }
         cfw_dark_mode_clear_color(0x10000, 0x10000, 0x10000, 0x4321);

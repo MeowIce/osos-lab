@@ -86,3 +86,7 @@
 #define OSOS_LANGUAGE_SELECT_CALL 0x0821e380
 #define OSOS_LANGUAGE_CURRENT_INDEX_ENTRY 0x081e21e0
 #define OSOS_LANGUAGE_SET 0x081e226c
+
+/* iAP accessory authentication: device-signature verifier entries. */
+#define OSOS_IAP_AUTH_VERIFY_A 0x0812dca8
+#define OSOS_IAP_AUTH_VERIFY_B 0x081592fc
