@@ -495,8 +495,8 @@ static const struct vi_entry translations[] = {
     {"Genius is unavailable for the selected song.", "Genius không khả dụng cho bài hát này."},
 
     /* Settings, Sort By, Now Playing & Side panel descriptions */
-    {"First", "Ten"},
-    {"Last", "Ho"},
+    {"First", "First"},
+    {"Last", "Last"},
     {"%d of %d", "%d trên %d"},
     {"%d of %d Photos", "%d trên %d Ảnh"},
     {"%d of %d Songs", "%d trên %d bài hát"},
@@ -565,7 +565,7 @@ static const struct vi_entry translations[] = {
     {"City", "Thành phố"},
 
     /* AM / PM */
-    {"AM", "SA"},
+    {"AM", "Sa"},
     {"PM", "Ch"},
     {"am", "sa"},
     {"pm", "ch"},

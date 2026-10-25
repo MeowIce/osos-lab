@@ -30,7 +30,7 @@ PATCH_ARM const void *cfw_bitmap_resource_get(void *service, uint32_t type, uint
     if (type == OSOS_RESOURCE_STR && resource) {
         if (cfw_vietnamese_enabled()) {
             if (id == 0x0dad0e30)
-                return "SA";
+                return "Sa";
             if (id == 0x0dad0e31)
                 return "Ch";
             if (id == 0x0dad0b94 || id == 0x0dad0bf7)
@@ -39,10 +39,6 @@ PATCH_ARM const void *cfw_bitmap_resource_get(void *service, uint32_t type, uint
                 return "1";
             if (id == 0x0dad0bb4 || id == 0x0dad0bfa)
                 return "B\xe1\xba\xadt";
-            if (id == 0x0dad0b98)
-                return "Ten";
-            if (id == 0x0dad0b99)
-                return "Ho";
             const char *vi = cfw_vietnamese_translate((const char *)resource);
             if (vi)
                 return vi;

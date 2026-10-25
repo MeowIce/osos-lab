@@ -35,14 +35,6 @@ PATCH_ARM int cfw_settings_property(void *model, uint32_t type,
             else if ((s[0] == 'T' && s[1] == '\xe1') || (s[0] == 'A' && s[1] == 'l'))
                 *out = (uintptr_t)"B\xe1\xba\xadt";
         }
-        if (s[0] == 'F' && s[1] == 'i')
-            *out = (uintptr_t)"Ten";
-        else if (s[0] == 'T' && s[1] == '\xc3' && s[2] == '\xaa')
-            *out = (uintptr_t)"Ten";
-        else if (s[0] == 'L' && s[1] == 'a')
-            *out = (uintptr_t)"Ho";
-        else if (s[0] == 'H' && s[1] == '\xe1')
-            *out = (uintptr_t)"Ho";
     }
     return result;
 }
