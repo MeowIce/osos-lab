@@ -246,7 +246,7 @@ static const struct vi_entry translations[] = {
     {"Beep", "Bíp"},
     {"Snooze", "Báo lại"},
     {"Dismiss", "Bỏ qua"},
-    {"Wake up", "Báo thức"},
+    {"Wake up", "Thức dậy"},
     {"Start", "Bắt đầu"},
     {"Stop", "Dừng"},
     {"Lap", "Vòng"},
@@ -319,7 +319,7 @@ static const struct vi_entry translations[] = {
     {"TV Screen", "Màn hình TV"},
     {"Widescreen", "Màn hình rộng"},
     {"Fit to Screen", "Vừa màn hình"},
-    {"Captions", "Phụ đề"},
+    {"Captions", "Chú thích"},
     {"Subtitles", "Phụ đề"},
     {"Alternate Audio", "Âm thanh phụ"},
 
@@ -495,10 +495,11 @@ static const struct vi_entry translations[] = {
     {"Genius is unavailable for the selected song.", "Genius không khả dụng cho bài hát này."},
 
     /* Settings, Sort By, Now Playing & Side panel descriptions */
-    {"First", "Tên"},
-    {"Last", "Họ"},
+    {"First", "Ten"},
+    {"Last", "Ho"},
     {"%d of %d", "%d trên %d"},
     {"%d of %d Photos", "%d trên %d Ảnh"},
+    {"%d of %d Songs", "%d trên %d bài hát"},
     {"Sort Contacts By First Name", "Sắp xếp danh bạ theo tên"},
     {"Sort Contacts By Last Name", "Sắp xếp danh bạ theo họ"},
     {"Play Music Library in Sequence", "Phát thư viện nhạc theo thứ tự"},
@@ -518,6 +519,95 @@ static const struct vi_entry translations[] = {
     {"Use Original Volume Level", "Dùng mức âm lượng gốc"},
     {"Normalize Volume Across All Songs", "Chuẩn hóa âm lượng mọi bài hát"},
     {"Adjust Scrolling Speed", "Điều chỉnh tốc độ cuộn"},
+
+    /* Media item counters */
+    {"1 Song", "1 bài hát"},
+    {"%d Songs", "%d bài hát"},
+    {"1 Album", "1 album"},
+    {"%d Albums", "%d album"},
+    {"1 Artist", "1 nghệ sĩ"},
+    {"%d Artists", "%d nghệ sĩ"},
+    {"1 Playlist", "1 danh sách phát"},
+    {"%d Playlists", "%d danh sách phát"},
+    {"1 Video", "1 video"},
+    {"%d Videos", "%d video"},
+    {"1 Photo", "1 ảnh"},
+    {"%d Photos", "%d ảnh"},
+    {"1 Game", "1 trò chơi"},
+    {"1 Episode", "1 tập"},
+    {"%d Episodes", "%d tập"},
+    {"1 Season", "1 mùa"},
+    {"%d Seasons", "%d mùa"},
+    {"1 Rental", "1 phim thuê"},
+    {"%d Rentals", "%d phim thuê"},
+    {"Number of Songs", "Số bài hát"},
+
+    /* On-The-Go & Context actions */
+    {"Add to On-The-Go", "Thêm vào On-The-Go"},
+    {"Browse Album", "Duyệt album"},
+    {"Browse Artist", "Duyệt nghệ sĩ"},
+    {"On-The-Go playlist. Press and hold on a playlist, artist, or album to add all of its songs to the On-The-Go playlist.", "Danh sách On-The-Go. Nhấn và giữ danh sách, nghệ sĩ hoặc album để thêm tất cả bài hát vào danh sách On-The-Go."},
+    {"On-The-Go playlist.", "Danh sách On-The-Go."},
+
+    /* Games play stats */
+    {"Never Played", "Chưa chơi"},
+    {"Played Once", "Đã chơi 1 lần"},
+    {"Played %d Times", "Đã chơi %d lần"},
+    {"Played %d times", "Đã chơi %d lần"},
+    {"%d Times", "%d lần"},
+
+    /* Instructions in To Do & Notes */
+    {"How to view To Do items:", "Cách xem việc cần làm:"},
+    {"See the iPod Features Guide or visit www.apple.com/support/ipod for additional information.", "Xem Hướng dẫn sử dụng iPod hoặc truy cập www.apple.com/support/ipod để biết thêm thông tin."},
+    {"See the iPod Feature Guide or visit www.apple.com/support/ipod for additional information.", "Xem Hướng dẫn sử dụng iPod hoặc truy cập www.apple.com/support/ipod để biết thêm thông tin."},
+    {"How to view and create notes:", "Cách xem và tạo ghi chú:"},
+    {"Instructions", "Hướng dẫn"},
+    {"City", "Thành phố"},
+
+    /* AM / PM */
+    {"AM", "SA"},
+    {"PM", "CH"},
+    {"am", "sa"},
+    {"pm", "ch"},
+
+    /* Alarms > Repeat / Frequency */
+    {"Once", "Một lần"},
+    {"Every Day", "Hàng ngày"},
+    {"Weekdays", "Ngày trong tuần"},
+    {"Weekends", "Cuối tuần"},
+    {"Every Week", "Hàng tuần"},
+    {"Every Month", "Hàng tháng"},
+    {"Every Year", "Hàng năm"},
+
+    /* Alarms > Sounds */
+    {"Tone", "Âm báo"},
+    {"Select Tone", "Chọn âm báo"},
+    {"Select Tones", "Chọn âm báo"},
+    {"Select Playlist", "Chọn danh sách phát"},
+    {"Select Playlists", "Chọn danh sách phát"},
+    {"Alarm Sound", "Âm báo thức"},
+    {"Alarm Sounds", "Âm báo thức"},
+
+    /* Alarms > Labels */
+    {"Label", "Nhãn"},
+    {"It's time to wake up.", "Đã đến giờ thức dậy."},
+    {"Work", "Công việc"},
+    {"Class", "Lớp học"},
+    {"You have a class to attend.", "Bạn có lớp học cần tham gia."},
+    {"Appointment", "Cuộc hẹn"},
+    {"You have an upcoming appointment.", "Bạn có một cuộc hẹn sắp tới."},
+    {"Phone Call", "Cuộc gọi"},
+    {"You have a phone call to make.", "Bạn có một cuộc gọi cần thực hiện."},
+    {"Breakfast", "Bữa sáng"},
+    {"It's time for breakfast.", "Đã đến giờ ăn sáng."},
+    {"Lunch", "Bữa trưa"},
+    {"It's time for lunch.", "Đã đến giờ ăn trưa."},
+    {"Dinner", "Bữa tối"},
+    {"It's time for dinner.", "Đã đến giờ ăn tối."},
+    {"Important", "Quan trọng"},
+    {"An important event is about to occur.", "Sắp diễn ra một sự kiện quan trọng."},
+    {"Prescription", "Uống thuốc"},
+    {"You have an alarm.", "Bạn có báo thức."},
 };
 
 const char *cfw_vietnamese_translate(const char *s)

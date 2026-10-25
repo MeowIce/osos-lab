@@ -5,8 +5,18 @@ class VietnameseTranslationTests(unittest.TestCase):
     def test_new_translations_exist_in_c_source(self):
         source = Path("payload/vietnamese.c").read_text(encoding="utf-8")
         required_pairs = [
-            ('{"First", "Tên"}', "Sort By first name toggle"),
-            ('{"Last", "Họ"}', "Sort By last name toggle"),
+            ('{"First", "Ten"}', "Sort By first name toggle"),
+            ('{"Last", "Ho"}', "Sort By last name toggle"),
+            ('{"Captions", "Chú thích"}', "Video Captions menu"),
+            ('{"%d Songs", "%d bài hát"}', "Playlist songs counter"),
+            ('{"1 Song", "1 bài hát"}', "Playlist 1 song counter"),
+            ('{"Add to On-The-Go", "Thêm vào On-The-Go"}', "Context action On-The-Go"),
+            ('{"AM", "SA"}', "Morning meridian"),
+            ('{"PM", "CH"}', "Afternoon meridian"),
+            ('{"Every Day", "Hàng ngày"}', "Alarm repeat every day"),
+            ('{"Never Played", "Chưa chơi"}', "Games play stats"),
+            ('{"How to view To Do items:", "Cách xem việc cần làm:"}', "To Do instructions"),
+            ('{"How to view and create notes:", "Cách xem và tạo ghi chú:"}', "Notes instructions"),
             ('{"%d of %d", "%d trên %d"}', "Now Playing track counter"),
             ('{"%d of %d Photos", "%d trên %d Ảnh"}', "Photos slideshow counter"),
             ('{"Sort Contacts By First Name", "Sắp xếp danh bạ theo tên"}', "Contacts sort by first"),
