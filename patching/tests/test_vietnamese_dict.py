@@ -12,7 +12,7 @@ class VietnameseTranslationTests(unittest.TestCase):
             ('{"1 Song", "1 bài hát"}', "Playlist 1 song counter"),
             ('{"Add to On-The-Go", "Thêm vào On-The-Go"}', "Context action On-The-Go"),
             ('{"AM", "SA"}', "Morning meridian"),
-            ('{"PM", "CH"}', "Afternoon meridian"),
+            ('{"PM", "Ch"}', "Afternoon meridian"),
             ('{"Every Day", "Hàng ngày"}', "Alarm repeat every day"),
             ('{"Never Played", "Chưa chơi"}', "Games play stats"),
             ('{"How to view To Do items:", "Cách xem việc cần làm:"}', "To Do instructions"),

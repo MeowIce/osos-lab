@@ -566,7 +566,7 @@ static const struct vi_entry translations[] = {
 
     /* AM / PM */
     {"AM", "SA"},
-    {"PM", "CH"},
+    {"PM", "Ch"},
     {"am", "sa"},
     {"pm", "ch"},
 

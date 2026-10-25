@@ -23,14 +23,16 @@ PATCH_ARM const void *cfw_bitmap_resource_get(void *service, uint32_t type, uint
             id == 0x0dad0010 || id == 0x0dad0013 || id == 0x0dad0016 ||
             id == 0x0dad001b || id == 0x0dad003b || id == 0x0dad003c)
             id = 0x0dad0021;
-        else if (id == 0x0dad0036)
-            id = 0x0dad0027;
     }
     const void *resource = cfw_bitmap_resource_get_original(service, type, id);
     if (type == OSOS_RESOURCE_COLR)
         resource = cfw_dark_mode_color(id, resource);
     if (type == OSOS_RESOURCE_STR && resource) {
         if (cfw_vietnamese_enabled()) {
+            if (id == 0x0dad0e30)
+                return "SA";
+            if (id == 0x0dad0e31)
+                return "Ch";
             if (id == 0x0dad0b94 || id == 0x0dad0bf7)
                 return "Ca kh\xc3\xba" "c";
             if (id == 0x0dad0bb3 || id == 0x0dad0bf9)

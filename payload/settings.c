@@ -25,16 +25,14 @@ PATCH_ARM int cfw_settings_property(void *model, uint32_t type,
         cfw_album_artists_menu_adjust_property(type, property, out);
     if (result && type == OSOS_PROPERTY_STRING && out && *out && cfw_vietnamese_enabled()) {
         const char *s = (const char *)*out;
-        if (property == 0x8905) {
-            if (s[0] == 'B' && s[1] == '\xc3')
+        if (property == 0x891b || property == 0x8907) {
+            if ((s[0] == 'B' && s[1] == '\xc3') || (s[0] == 'S' && s[1] == 'o'))
                 *out = (uintptr_t)"Ca kh\xc3\xba" "c";
-            else if (s[0] == 'S' && s[1] == 'o')
-                *out = (uintptr_t)"Ca kh\xc3\xba" "c";
-            else if (s[0] == '1' || (s[0] == 'O' && s[1] == 'n'))
+        }
+        if (property == 0x891c || property == 0x8905) {
+            if (s[0] == '1' || (s[0] == 'O' && s[1] == 'n') || (s[0] == 'M' && s[1] == '\xe1'))
                 *out = (uintptr_t)"1";
-            else if (s[0] == 'T' && s[1] == '\xe1')
-                *out = (uintptr_t)"B\xe1\xba\xadt";
-            else if (s[0] == 'A' && s[1] == 'l')
+            else if ((s[0] == 'T' && s[1] == '\xe1') || (s[0] == 'A' && s[1] == 'l'))
                 *out = (uintptr_t)"B\xe1\xba\xadt";
         }
         if (s[0] == 'F' && s[1] == 'i')
