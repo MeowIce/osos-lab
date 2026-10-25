@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include "vietnamese.h"
-#include "vietnamese_ui.h"
 #include "cfw.h"
 #include "osos.h"
 #include "preferences.h"
@@ -62,31 +61,6 @@ void cfw_vietnamese_set(int enable)
     enabled = enable ? 1 : 0;
     save(enabled);
     cfw_install_vietnamese(osos_resource_bank());
-}
-
-int cfw_vietnamese_property(uint32_t type, uint32_t property, uintptr_t *out)
-{
-    if (type != OSOS_PROPERTY_STRING || property != CFW_Vietnamese_Value)
-        return 0;
-    *out = osos_settings_on_off(enabled);
-    return 1;
-}
-
-int cfw_vietnamese_action(void *controller, const char *action, uint32_t argument)
-{
-    if (!cfw_string_equal(action, "CFW_Vietnamese_Toggle"))
-        return 0;
-    if (argument == OSOS_ACTION_SUPPORT_QUERY)
-        return 1;
-
-    if (save(!enabled)) {
-        enabled = !enabled;
-        cfw_install_vietnamese(osos_resource_bank());
-        osos_model_notify(osos_settings_model(controller), OSOS_NOTIFY_ALL,
-                          CFW_Vietnamese_Value);
-        osos_ui_invalidate();
-    }
-    return 1;
 }
 
 struct vi_entry {

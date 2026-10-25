@@ -29,9 +29,16 @@ class LanguageHooksTests(unittest.TestCase):
 
         vi_h = Path("payload/vietnamese.h").read_text()
         self.assertIn("void cfw_vietnamese_set(int enable);", vi_h)
+        self.assertNotIn("cfw_vietnamese_action", vi_h)
+        self.assertNotIn("cfw_vietnamese_property", vi_h)
 
         vi_c = Path("payload/vietnamese.c").read_text()
         self.assertIn("void cfw_vietnamese_set(int enable)", vi_c)
+        self.assertNotIn("vietnamese_ui.h", vi_c)
+
+        settings_c = Path("payload/settings.c").read_text()
+        self.assertNotIn("cfw_vietnamese_action", settings_c)
+        self.assertNotIn("cfw_vietnamese_property", settings_c)
 
         lang_s = Path("payload/language.S").read_text()
         self.assertIn("cfw_language_name_original:", lang_s)

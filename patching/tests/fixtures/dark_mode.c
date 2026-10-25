@@ -154,18 +154,6 @@ int cfw_eq_action(const char *action, uint32_t argument)
     return !strcmp(action, "CFW_EQ_Open");
 }
 
-int cfw_vietnamese_action(void *controller, const char *action, uint32_t argument)
-{
-    (void)controller; (void)action; (void)argument;
-    return 0;
-}
-
-int cfw_vietnamese_property(uint32_t type, uint32_t property, uintptr_t *out)
-{
-    (void)type; (void)property; (void)out;
-    return 0;
-}
-
 int cfw_vietnamese_enabled(void) { return 0; }
 const char *cfw_vietnamese_translate(const char *s) { return s; }
 

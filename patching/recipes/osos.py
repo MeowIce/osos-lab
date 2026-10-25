@@ -68,7 +68,6 @@ def build_recipe(
                 "song_info.ui",
                 "album_artists.ui",
                 "dark_mode.ui",
-                "vietnamese.ui",
                 "queue_selection.ui",
             )
         ],

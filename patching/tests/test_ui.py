@@ -355,6 +355,13 @@ class UiTests(unittest.TestCase):
         self.assertIn(b"TEST_Set_00_00", events)
         self.assertIn(b"TEST_Set_01_01", events)
 
+    def test_vietnamese_ui_removed_from_ui_build_list(self):
+        root = Path(__file__).resolve().parents[2]
+        osos_recipe_py = (root / "patching/recipes/osos.py").read_text()
+        self.assertNotIn("vietnamese.ui", osos_recipe_py)
+        self.assertFalse((root / "payload/vietnamese.ui").exists())
+
+
 
 if __name__ == "__main__":
     unittest.main()
