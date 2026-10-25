@@ -21,6 +21,8 @@ enum {
     ACCENT_TEXT_LIGHT = 0x3185d0,
     ACCENT_DARK = 0x00a1ff,
     IMG_SUN = 0x0dad0bff, /* Settings_Brightness_Image */
+    COLOR_CALENDAR_DAY = 0x0dad030f,
+    COLOR_SEARCH_INPUT = 0x0dad0dcf, /* Search_Keyboard_Background_Color */
 };
 
 static const struct osos_path settings_path = {0, "iPod_Control\\Device\\CFWDark"};
@@ -96,25 +98,24 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
     return 1;
 }
 
-/*
- * The Now Playing idle clock (shown while playing on battery) draws its digits and
- * icons as light bitmaps, so it keeps its light background. COLR data is one
- * 0x00RRGGBB word; the fill only darkens neutral grays, so a one-step tint is
- * enough to leave this color alone.
- */
 const void *cfw_dark_mode_color(uint32_t id, const void *color)
 {
+    static const uint32_t dark_text = 0x000001;
     static uint32_t idle_background;
     static uint32_t light;
     if (!cfw_dark_mode_enabled() || !color)
         return color;
+    uint32_t rgb = *(const uint32_t *)color;
+    /* A one-step tint keeps text on light artwork out of the neutral-color remap. */
+    if (!rgb && (id == COLOR_CALENDAR_DAY || id == COLOR_SEARCH_INPUT))
+        return &dark_text;
+    /* The idle clock's light bitmap digits need their original light background. */
     if (!idle_background) {
         struct osos_string name;
         osos_string_init(&name, "NowPlaying_Idle_Background");
         idle_background = *osos_resource_name_slot(&name);
         osos_string_destroy(&name);
     }
-    uint32_t rgb = *(const uint32_t *)color;
     uint32_t blue = rgb & 0xff;
     if (id != idle_background || ((rgb >> 16) & 0xff) != blue ||
         ((rgb >> 8) & 0xff) != blue || blue < BACKGROUND_LIGHT_MIN)

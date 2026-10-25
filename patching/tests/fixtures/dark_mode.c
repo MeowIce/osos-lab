@@ -317,6 +317,16 @@ int main(void)
             assert(cfw_settings_action(&controller, "CFW_DarkMode_Toggle", 0));
         int dark = cycle == 1;
         assert(cfw_dark_mode_enabled() == dark);
+        const uint32_t black = 0;
+        const uint32_t text_resources[] = {0x0dad030f, 0x0dad0dcf};
+        for (unsigned i = 0; i < 2; i++) {
+            uint32_t rgb =
+                *(const uint32_t *)cfw_dark_mode_color(text_resources[i], &black);
+            unsigned char rgba[] = {rgb >> 16, rgb >> 8, rgb, 123};
+            cfw_dark_mode_text_color(&surface, rgba);
+            assert(drawn[0] == 0 && drawn[1] == 0 && drawn[2] == dark &&
+                   drawn[3] == 123);
+        }
         assert(cfw_settings_property(&model, OSOS_RESOURCE_BMAP,
                                      CFW_DarkMode_PreviewImage, &value));
         assert(value == (dark ? CFW_DarkMode_Moon : IMG_SUN));

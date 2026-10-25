@@ -222,6 +222,18 @@
     "file": "now-playing-classic-shuffle.png"
   },
   {
+    "name": "NowPlaying_Classic_Repeat_Image",
+    "type": "BMap",
+    "id": "0x0DAD0869",
+    "file": "now-playing-classic-repeat.png"
+  },
+  {
+    "name": "NowPlaying_Classic_Repeat_Once_Image",
+    "type": "BMap",
+    "id": "0x0DAD086A",
+    "file": "now-playing-classic-repeat-once.png"
+  },
+  {
     "name": "NowPlaying_ProgressBar_Active_Background_Image",
     "type": "BMap",
     "id": "0x0DAD0882",

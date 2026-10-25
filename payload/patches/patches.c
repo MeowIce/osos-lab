@@ -19,6 +19,8 @@ PATCH_CALL(OSOS_ARTWORK_REFLECTION_BLEND_CALL, OSOS_RGB565_BLEND_FIXED,
            cfw_dark_mode_reflection_blend);
 /* Lyrics must not inherit the idle clock's exemption from background darkening. */
 PATCH_WORD(OSOS_LYRICS_BACKGROUND_COLOR_WORD, 0x0dad0851, 0x0dad00cd);
+/* Give the input field Search's own black color; keyboard/results keep normal text. */
+PATCH_WORD(OSOS_SEARCH_INPUT_COLOR_WORD, 0x0dad00ce, 0x0dad0dcf);
 
 /* Shared Settings hooks */
 PATCH_POINTER(OSOS_SETTINGS_PROPERTY_SLOT, OSOS_SETTINGS_PROPERTY,
