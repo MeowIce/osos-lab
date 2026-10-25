@@ -119,7 +119,7 @@ def main():
         "--cross-prefix", default=os.environ.get("CROSS_COMPILE", "arm-elf-eabi-")
     )
     parser.add_argument("--jobs", type=int, choices=range(1, 9), default=8)
-    parser.add_argument("--minimum-installer-version", default="0.2.8")
+    parser.add_argument("--minimum-installer-version", default="0.2.0")
     parser.add_argument("--out", type=Path, default=ROOT / "build/releases")
     args = parser.parse_args()
     if not valid_version(args.minimum_installer_version):
