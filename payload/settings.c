@@ -28,7 +28,7 @@ PATCH_ARM int cfw_settings_property(void *model, uint32_t type,
         if (property == 0x8905) {
             if ((s[0] == 'B' && (unsigned char)s[1] == 0xc3) ||
                 (s[0] == 'S' && s[1] == 'o'))
-                *out = (uintptr_t)"Ca kh\xc3\xba" "c";
+                *out = (uintptr_t)"B.h\xc3\xa1t";
         }
         if (property == 0x8907) {
             if (s[0] == '1' || (s[0] == 'O' && s[1] == 'n') ||

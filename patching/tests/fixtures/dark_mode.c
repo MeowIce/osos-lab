@@ -193,11 +193,11 @@ int main(void)
     vi_enabled = 1;
     value = (uintptr_t)"B\xc3\xa0i h\xc3\xa1t";
     assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
-    assert(!strcmp((const char *)value, "Ca kh\xc3\xba" "c"));
+    assert(!strcmp((const char *)value, "B.h\xc3\xa1t"));
 
     value = (uintptr_t)"Songs";
     assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
-    assert(!strcmp((const char *)value, "Ca kh\xc3\xba" "c"));
+    assert(!strcmp((const char *)value, "B.h\xc3\xa1t"));
 
     value = (uintptr_t)"Off";
     assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
