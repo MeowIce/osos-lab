@@ -156,6 +156,23 @@ int cfw_eq_action(const char *action, uint32_t argument)
     return !strcmp(action, "CFW_EQ_Open");
 }
 
+int cfw_clicker_action(void *controller, const char *action, uint32_t argument)
+{
+    (void)controller;
+    (void)action;
+    (void)argument;
+    return 0;
+}
+
+int cfw_clicker_property(void *model, uint32_t type, uint32_t property, uintptr_t *out)
+{
+    (void)model;
+    (void)type;
+    (void)property;
+    (void)out;
+    return 0;
+}
+
 static int vi_enabled = 0;
 int cfw_vietnamese_enabled(void) { return vi_enabled; }
 const char *cfw_vietnamese_translate(const char *s) { return s; }
