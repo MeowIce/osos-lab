@@ -11,8 +11,6 @@ class VietnameseTranslationTests(unittest.TestCase):
             ('{"%d Songs", "%d bài hát"}', "Playlist songs counter"),
             ('{"1 Song", "1 bài hát"}', "Playlist 1 song counter"),
             ('{"Add to On-The-Go", "Thêm vào On-The-Go"}', "Context action On-The-Go"),
-            ('{"AM", "Sa"}', "Morning meridian"),
-            ('{"PM", "Ch"}', "Afternoon meridian"),
             ('{"Every Day", "Hàng ngày"}', "Alarm repeat every day"),
             ('{"Never Played", "Chưa chơi"}', "Games play stats"),
             ('{"How to view To Do items:", "Cách xem việc cần làm:"}', "To Do instructions"),
@@ -54,6 +52,8 @@ class VietnameseTranslationTests(unittest.TestCase):
         self.assertIn('{"Songs", "Bài hát"}', source)
         self.assertNotIn('{"Widescreen", "Màn hình rộng"}', source)
         self.assertNotIn('{"Ask", "Hỏi"}', source)
+        self.assertNotIn('{"AM", "Sa"}', source)
+        self.assertNotIn('{"PM", "Ch"}', source)
         self.assertIn('id == 0x0dad0b91', assets)
         self.assertIn('return "B.h\\xc3\\xa1t";', assets)
 

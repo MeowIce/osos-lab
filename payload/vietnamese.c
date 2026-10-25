@@ -562,12 +562,6 @@ static const struct vi_entry translations[] = {
     {"Instructions", "Hướng dẫn"},
     {"City", "Thành phố"},
 
-    /* AM / PM */
-    {"AM", "Sa"},
-    {"PM", "Ch"},
-    {"am", "sa"},
-    {"pm", "ch"},
-
     /* Alarms > Repeat / Frequency */
     {"Once", "Một lần"},
     {"Every Day", "Hàng ngày"},
