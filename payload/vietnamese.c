@@ -17,6 +17,13 @@ int cfw_vietnamese_enabled(void)
     return enabled != 0;
 }
 
+static void set_res_str(void *bank, uint32_t id, const char *str)
+{
+    uint32_t len = 0;
+    while (str[len]) len++;
+    osos_resource_set(bank, 0x53747220, id, str, len + 1);
+}
+
 void cfw_install_vietnamese(void *bank)
 {
     if (!bank)
@@ -25,19 +32,22 @@ void cfw_install_vietnamese(void *bank)
     int is_vi = enabled != 0;
 
     /* Common toggle strings: Bật / Tắt or On / Off */
-    const char *on_str = is_vi ? "Bật" : "On";
-    const char *off_str = is_vi ? "Tắt" : "Off";
-    uint32_t on_len = 0, off_len = 0;
-    while (on_str[on_len]) on_len++;
-    while (off_str[off_len]) off_len++;
-    osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_ON_STRING, on_str, on_len + 1);
-    osos_resource_set(bank, 0x53747220, OSOS_SETTINGS_OFF_STRING, off_str, off_len + 1);
+    set_res_str(bank, OSOS_SETTINGS_ON_STRING, is_vi ? "Bật" : "On");
+    set_res_str(bank, OSOS_SETTINGS_OFF_STRING, is_vi ? "Tắt" : "Off");
+
+    /* Settings toggle values: Shuffle, Repeat, Sort By */
+    set_res_str(bank, 0x0dad0bf6, is_vi ? "Tắt" : "Off");
+    set_res_str(bank, 0x0dad0bf7, is_vi ? "Bài hát" : "Songs");
+    set_res_str(bank, 0x0dad0b95, is_vi ? "Album" : "Albums");
+    set_res_str(bank, 0x0dad0bf8, is_vi ? "Tắt" : "Off");
+    set_res_str(bank, 0x0dad0bf9, is_vi ? "1 bài" : "One");
+    set_res_str(bank, 0x0dad0bfa, is_vi ? "Tất cả" : "All");
+    set_res_str(bank, 0x0dad0b98, is_vi ? "Tên" : "First");
+    set_res_str(bank, 0x0dad0b99, is_vi ? "Họ" : "Last");
 
     /* Date format: %-d %b %Y produces "25 Thg 10 2026" in Vietnamese */
     const char *date_fmt = is_vi ? "%-d %b %Y" : "%b %-d %Y";
-    uint32_t fmt_len = 0;
-    while (date_fmt[fmt_len]) fmt_len++;
-    osos_resource_set(bank, 0x53747220, 0xb3, date_fmt, fmt_len + 1);
+    set_res_str(bank, 0xb3, date_fmt);
 }
 
 void cfw_vietnamese_load(void)

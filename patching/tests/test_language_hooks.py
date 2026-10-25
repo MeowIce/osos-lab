@@ -8,12 +8,12 @@ class LanguageHooksTests(unittest.TestCase):
         sites = Path("payload/patches/sites.h").read_text()
         patches = Path("payload/patches/patches.c").read_text()
         
-        self.assertIn("#define OSOS_LANGUAGE_COUNT_WORD 0x081e388c", sites)
+        self.assertIn("#define OSOS_LANGUAGE_COUNT_WORD 0x081e1d9c", sites)
         self.assertIn("#define OSOS_LANGUAGE_NAME_ENTRY 0x081e1ea8", sites)
         self.assertIn("#define OSOS_LANGUAGE_SELECT_CALL 0x0821e380", sites)
         self.assertIn("#define OSOS_LANGUAGE_CURRENT_INDEX_ENTRY 0x081e21e0", sites)
 
-        self.assertIn("PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a01015, 0xe3a01016);", patches)
+        self.assertIn("PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a00015, 0xe3a00016);", patches)
         self.assertIn("PATCH_JUMP(OSOS_LANGUAGE_NAME_ENTRY, 0xe92d4010, 0xe1a04001, cfw_language_name);", patches)
         self.assertIn("PATCH_CALL(OSOS_LANGUAGE_SELECT_CALL, OSOS_LANGUAGE_SET, cfw_language_select);", patches)
         self.assertIn("PATCH_JUMP(OSOS_LANGUAGE_CURRENT_INDEX_ENTRY, 0xe92d4010, 0xe5900378, cfw_language_current_index);", patches)

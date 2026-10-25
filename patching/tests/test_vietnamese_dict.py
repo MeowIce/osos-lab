@@ -44,5 +44,9 @@ class VietnameseTranslationTests(unittest.TestCase):
         sites = Path("payload/patches/sites.h").read_text()
         patches = Path("payload/patches/patches.c").read_text()
         self.assertIn("OSOS_SETTINGS_STYLE_FONT_WORD", sites)
+        self.assertIn("OSOS_SETTINGS_TOGGLE_STYLE_FONT_WORD", sites)
+        self.assertIn("OSOS_FONT_RESOURCE_PLAIN_STYLE_WORD", sites)
         self.assertIn("PATCH_WORD(OSOS_SETTINGS_STYLE_FONT_WORD, 0x0dad0020, 0x0dad0021)", patches)
+        self.assertIn("PATCH_WORD(OSOS_SETTINGS_TOGGLE_STYLE_FONT_WORD, 0x0dad0020, 0x0dad0021)", patches)
+        self.assertIn("PATCH_WORD(OSOS_FONT_RESOURCE_PLAIN_STYLE_WORD, 0x00000000, 0x00000001)", patches)
 
