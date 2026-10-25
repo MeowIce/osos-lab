@@ -35,16 +35,6 @@ void cfw_install_vietnamese(void *bank)
     set_res_str(bank, OSOS_SETTINGS_ON_STRING, is_vi ? "Bật" : "On");
     set_res_str(bank, OSOS_SETTINGS_OFF_STRING, is_vi ? "Tắt" : "Off");
 
-    /* Settings toggle values: Shuffle, Repeat, Sort By */
-    set_res_str(bank, 0x0dad0bf6, is_vi ? "Tắt" : "Off");
-    set_res_str(bank, 0x0dad0bf7, is_vi ? "Bài hát" : "Songs");
-    set_res_str(bank, 0x0dad0b95, is_vi ? "Album" : "Albums");
-    set_res_str(bank, 0x0dad0bf8, is_vi ? "Tắt" : "Off");
-    set_res_str(bank, 0x0dad0bf9, is_vi ? "1 bài" : "One");
-    set_res_str(bank, 0x0dad0bfa, is_vi ? "Tất cả" : "All");
-    set_res_str(bank, 0x0dad0b98, is_vi ? "Tên" : "First");
-    set_res_str(bank, 0x0dad0b99, is_vi ? "Họ" : "Last");
-
     /* Date format: %-d %b %Y produces "25 Thg 10 2026" in Vietnamese */
     const char *date_fmt = is_vi ? "%-d %b %Y" : "%b %-d %Y";
     set_res_str(bank, 0xb3, date_fmt);

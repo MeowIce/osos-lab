@@ -51,6 +51,8 @@ class LanguageHooksTests(unittest.TestCase):
         escaped_bytes = b"Ti\xe1\xba\xbfng Vi\xe1\xbb\x87t"
         self.assertEqual(expected_utf8, escaped_bytes)
         self.assertIn('return "Ti\\xe1\\xba\\xbfng Vi\\xe1\\xbb\\x87t";', lang_c)
+        self.assertIn("if (index == 18)", lang_c)
+        self.assertIn("if (orig >= 18)", lang_c)
 
     def test_payload_builds_cleanly(self):
         compiler = shutil.which("arm-elf-eabi-gcc")
