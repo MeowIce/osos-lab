@@ -268,5 +268,89 @@
     "type": "BMap",
     "id": "0x0DAD0124",
     "file": "dark/system-scrollbar-bottom.png"
+  },
+  {
+    "name": "NowPlaying_Large_Shuffle_Image",
+    "type": "BMap",
+    "id": "0x0DAD087F",
+    "file": "dark/nowplaying-large-shuffle-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_7_Image",
+    "type": "BMap",
+    "id": "0x0DAD08A0",
+    "file": "dark/nowplaying-idle-battery-7-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_0_Image",
+    "type": "BMap",
+    "id": "0x0DAD0899",
+    "file": "dark/nowplaying-idle-battery-0-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_1_Image",
+    "type": "BMap",
+    "id": "0x0DAD089A",
+    "file": "dark/nowplaying-idle-battery-1-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_2_Image",
+    "type": "BMap",
+    "id": "0x0DAD089B",
+    "file": "dark/nowplaying-idle-battery-2-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_3_Image",
+    "type": "BMap",
+    "id": "0x0DAD089C",
+    "file": "dark/nowplaying-idle-battery-3-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_4_Image",
+    "type": "BMap",
+    "id": "0x0DAD089D",
+    "file": "dark/nowplaying-idle-battery-4-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_5_Image",
+    "type": "BMap",
+    "id": "0x0DAD089E",
+    "file": "dark/nowplaying-idle-battery-5-image.png"
+  },
+  {
+    "name": "NowPlaying_Idle_Battery_6_Image",
+    "type": "BMap",
+    "id": "0x0DAD089F",
+    "file": "dark/nowplaying-idle-battery-6-image.png"
+  },
+  {
+    "name": "NowPlaying_White_Rew_Image",
+    "type": "BMap",
+    "id": "0x0DAD0873",
+    "file": "dark/nowplaying-white-rew-image.png"
+  },
+  {
+    "name": "NowPlaying_White_FF_Image",
+    "type": "BMap",
+    "id": "0x0DAD0872",
+    "file": "dark/nowplaying-white-ff-image.png"
+  },
+  {
+    "name": "Settings_MainMenu_CheckmarkBlack_Image",
+    "type": "BMap",
+    "id": "0x0DAD0C08",
+    "file": "dark/settings-mainmenu-checkmarkblack-image.png"
+  },
+  {
+    "name": "Media_NowPlayingIcon_Black_Image",
+    "type": "BMap",
+    "id": "0x0DAD072C",
+    "file": "dark/media-nowplayingicon-black-image.png"
+  },
+  {
+    "name": "Media_NowPlayingIcon_Playlist_Black_Image",
+    "type": "BMap",
+    "id": "0x0DAD072E",
+    "file": "dark/media-nowplayingicon-playlist-black-image.png"
   }
 ]
