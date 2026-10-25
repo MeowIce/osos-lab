@@ -57,6 +57,13 @@ static int save(unsigned int value)
     return cfw_preferences_write(&settings_path, &record, sizeof(record));
 }
 
+void cfw_vietnamese_set(int enable)
+{
+    enabled = enable ? 1 : 0;
+    save(enabled);
+    cfw_install_vietnamese(osos_resource_bank());
+}
+
 int cfw_vietnamese_property(uint32_t type, uint32_t property, uintptr_t *out)
 {
     if (type != OSOS_PROPERTY_STRING || property != CFW_Vietnamese_Value)

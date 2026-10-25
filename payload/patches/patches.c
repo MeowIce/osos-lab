@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 
 #include "patch.h"
+#include "language.h"
 #include "native/bindings.h"
 #include "patches/sites.h"
 
@@ -134,3 +135,9 @@ PATCH_CALL(OSOS_ARTISTS_CANCEL_APPEND_CALL, OSOS_CONTEXT_MENU_APPEND,
 /* Albums, Artists and other library lists share this dispatcher. */
 PATCH_JUMP(OSOS_MEDIA_LIST_ACTION_ENTRY, 0xe92d41f0, 0xe1a07001, cfw_media_list_action);
 PATCH_CALL(OSOS_MEDIA_LIST_OTG_ADD_CALL, OSOS_OTG_ADD_BROWSER, cfw_queue_selection);
+
+/* Language menu 22-item Vietnamese extension */
+PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a01015, 0xe3a01016);
+PATCH_JUMP(OSOS_LANGUAGE_NAME_ENTRY, 0xe92d4010, 0xe1a04001, cfw_language_name);
+PATCH_CALL(OSOS_LANGUAGE_SELECT_CALL, OSOS_LANGUAGE_SET, cfw_language_select);
+PATCH_JUMP(OSOS_LANGUAGE_CURRENT_INDEX_ENTRY, 0xe92d4010, 0xe5900378, cfw_language_current_index);
