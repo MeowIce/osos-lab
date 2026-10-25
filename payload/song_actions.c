@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include "osos.h"
 #include "cfw.h"
+#include "lyrics.h"
 #include "patch.h"
 #include "play_next.h"
 #include "song_info.h"
@@ -108,11 +109,42 @@ PATCH_ARM void cfw_now_playing_menu_cancel(struct osos_context_menu *menu,
     osos_context_menu_append(menu, label, action, flags);
 }
 
+static int is_now_playing_extra_info(void *controller)
+{
+    if (!controller)
+        return 0;
+    void *nav = *(void **)((uint8_t *)controller + 176);
+    if (!nav)
+        return 0;
+    typedef void *(*get_layout_fn)(void *);
+    void *layout = ((get_layout_fn)OSOS_LAYOUT_GET_TOP)(nav);
+    if (!layout)
+        return 0;
+    typedef void *(*get_desc_fn)(void *);
+    void *desc = ((get_desc_fn)OSOS_LAYOUT_GET_DESC)(layout);
+    if (!desc)
+        return 0;
+    uint32_t layout_id = *(uint32_t *)((uint8_t *)desc + 40);
+    return layout_id == OSOS_EXTRA_INFO_LAYOUT_ID;
+}
+
 PATCH_ARM int cfw_now_playing_action(void *controller, const char *action,
                                      uint32_t argument)
 {
     typedef int (*fn)(void *, const char *, uint32_t);
     if (song_action(controller, NOW_PLAYING, action, argument))
         return 1;
+    if (cfw_lyrics_is_active() && cfw_string_equal(action, "HandleWheel")) {
+        if (argument == OSOS_ACTION_SUPPORT_QUERY)
+            return 1;
+        if (is_now_playing_extra_info(controller)) {
+            struct osos_player *player = osos_player_get();
+            uint32_t ms = player ? osos_player_get_position(player) : 0;
+            int delta = (int)(int32_t)argument;
+            cfw_lyrics_scroll(delta, ms);
+            osos_ui_invalidate();
+            return 1;
+        }
+    }
     return ((fn)OSOS_NOW_PLAYING_ACTION)(controller, action, argument);
 }

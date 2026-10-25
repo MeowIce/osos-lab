@@ -4,8 +4,10 @@
 #define CFW_PATCH_H
 #include <stdint.h>
 
+#ifndef PATCH_ARM
 /* Native ARM call sites can enter marked C functions directly. */
 #define PATCH_ARM __attribute__((target("arm")))
+#endif
 
 /* Build metadata; the linker discards it from the installed payload. */
 struct cfw_patch {

@@ -2,6 +2,7 @@
 
 #include "custom_eq.h"
 #include "eq_coefficients.h"
+#include "lyrics.h"
 #include "osos.h"
 #include "native/eq-layout.h"
 #include "patch.h"
@@ -73,6 +74,7 @@ static int install_coefficients(void *state, int force)
 
 PATCH_ARM void cfw_eq_load(void *state)
 {
+    cfw_lyrics_reset_active();
     fade_remaining = 0;
     if (osos_eq_preset(state) == CFW_EQ_DSP_PRESET) {
         install_coefficients(state, 1);
@@ -85,6 +87,7 @@ PATCH_ARM void cfw_eq_load(void *state)
 PATCH_ARM void cfw_eq_process(void *state, int16_t *samples, uint32_t frames,
                               int16_t **output, uint32_t *output_frames)
 {
+    cfw_lyrics_tick();
     *output = samples;
     *output_frames = frames;
     if (osos_eq_preset(state) != CFW_EQ_DSP_PRESET) {

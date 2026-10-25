@@ -155,3 +155,6 @@ PATCH_CALL(OSOS_MEDIA_LIST_OTG_ADD_CALL, OSOS_OTG_ADD_BROWSER, cfw_queue_selecti
 PATCH_JUMP(OSOS_IAP_AUTH_VERIFY_A, 0xe92d43f0, 0xe24dd06c, cfw_iap_auth_verify);
 /* stmdb sp!,{r2,r3,r4,lr}; cmp r1,#0 */
 PATCH_JUMP(OSOS_IAP_AUTH_VERIFY_B, 0xe92d401c, 0xe3510000, cfw_iap_auth_verify);
+
+/* Synchronized lyrics text rendering hook on TextView draw. */
+PATCH_JUMP(OSOS_TEXT_VIEW_DRAW_ENTRY, 0xe92d40f0, 0xe1a04000, cfw_text_view_draw);

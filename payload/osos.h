@@ -258,6 +258,12 @@ static inline void osos_player_unlock(struct osos_player *player)
     ((void (*)(void *))OSOS_PLAYER_UNLOCK)((uint8_t *)player + 0xa4c);
 }
 
+static inline uint32_t osos_player_get_position(struct osos_player *player)
+{
+    typedef uint32_t (*fn)(struct osos_player *);
+    return ((fn)OSOS_PLAYER_GET_POSITION)(player);
+}
+
 static inline int osos_media_item_valid(struct osos_media_item *item)
 {
     typedef int (*fn)(struct osos_media_item *);

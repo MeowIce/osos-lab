@@ -3,7 +3,48 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
+
+/* Native layout assertions assume 32-bit pointers; this fixture runs on the host. */
+#define _Static_assert(...)
+#define PATCH_ARM
+#include "../../../payload/osos.h"
 #include "../../../payload/lyrics.h"
+#undef _Static_assert
+
+static uint32_t mock_playback_ms;
+static int mock_invalidates;
+static struct osos_player mock_player_inst;
+static const char *mock_drawn_text;
+
+int cfw_text_view_draw_original(void *view, const char *text, void *context)
+{
+    (void)view;
+    (void)context;
+    mock_drawn_text = text;
+    return 1;
+}
+
+static struct osos_player *mock_player_get(void)
+{
+    return &mock_player_inst;
+}
+
+static uint32_t mock_player_get_position(struct osos_player *p)
+{
+    (void)p;
+    return mock_playback_ms;
+}
+
+static void mock_ui_invalidate(void)
+{
+    mock_invalidates++;
+}
+
+#define osos_player_get mock_player_get
+#define osos_player_get_position mock_player_get_position
+#define osos_ui_invalidate mock_ui_invalidate
+
 #include "../../../payload/lyrics.c"
 
 static const char test_lrc[] =
@@ -113,7 +154,43 @@ int main(void)
         }
     }
 
-    /* 7. Reset */
+    /* 7. High-level display & tick tests */
+    mock_playback_ms = 25000;
+    const char *disp = cfw_lyrics_get_display_text(test_lrc, (uint32_t)strlen(test_lrc));
+    assert(disp != test_lrc);
+    assert(cfw_lyrics_is_active() == 1);
+    assert(strstr(disp, "▶ Second line: Tiếng Việt tuyệt vời") != NULL);
+
+    /* Static text check */
+    const char *disp_static = cfw_lyrics_get_display_text(static_text, (uint32_t)strlen(static_text));
+    assert(disp_static == static_text);
+
+    /* Tick test */
+    mock_invalidates = 0;
+    mock_playback_ms = 70000; /* advances to line 2 */
+    cfw_lyrics_tick();
+    assert(mock_invalidates == 1);
+
+    /* 8. Header detection & TextView draw hook */
+    assert(cfw_lyrics_has_timestamp_header(test_lrc) == 1);
+    assert(cfw_lyrics_has_timestamp_header(static_text) == 0);
+    assert(cfw_lyrics_has_timestamp_header(NULL) == 0);
+
+    mock_drawn_text = NULL;
+    cfw_text_view_draw(NULL, static_text, NULL);
+    assert(mock_drawn_text == static_text);
+
+    mock_drawn_text = NULL;
+    cfw_text_view_draw(NULL, test_lrc, NULL);
+    assert(mock_drawn_text != test_lrc);
+    assert(strstr(mock_drawn_text, "▶ ") != NULL);
+
+    /* Wheel scroll and reset active */
+    cfw_lyrics_scroll(1, 70000);
+    cfw_lyrics_reset_active();
+    assert(cfw_lyrics_is_active() == 0);
+
+    /* 9. Reset */
     cfw_lyrics_reset(&state);
     assert(state.count == 0);
     assert(state.has_synced == 0);

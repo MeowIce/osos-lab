@@ -1,6 +1,118 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 
 #include "lyrics.h"
+#include "osos.h"
+
+static struct cfw_lyrics_state global_lyrics;
+
+int cfw_lyrics_is_active(void)
+{
+    return global_lyrics.has_synced;
+}
+
+void cfw_lyrics_reset_active(void)
+{
+    cfw_lyrics_reset(&global_lyrics);
+}
+
+void cfw_lyrics_scroll(int delta, uint32_t current_ms)
+{
+    cfw_lyrics_on_wheel(&global_lyrics, delta, current_ms);
+}
+
+int cfw_lyrics_has_timestamp_header(const char *raw)
+{
+    if (!raw)
+        return 0;
+    while (*raw == ' ' || *raw == '\t' || *raw == '\r' || *raw == '\n')
+        raw++;
+    if (*raw != '[')
+        return 0;
+
+    for (int tag = 0; tag < 6; tag++) {
+        if (*raw != '[')
+            break;
+        if (raw[1] >= '0' && raw[1] <= '9' && (raw[3] == ':' || raw[4] == ':'))
+            return 1;
+        const char *close = raw;
+        while (*close && *close != ']' && *close != '\n')
+            close++;
+        if (*close == ']') {
+            raw = close + 1;
+            while (*raw == ' ' || *raw == '\t' || *raw == '\r' || *raw == '\n')
+                raw++;
+        } else {
+            break;
+        }
+    }
+    return 0;
+}
+
+static uint32_t cfw_strlen(const char *s)
+{
+    uint32_t len = 0;
+    if (!s)
+        return 0;
+    while (s[len])
+        len++;
+    return len;
+}
+
+const char *cfw_lyrics_get_display_text(const char *raw, uint32_t len)
+{
+    if (!raw)
+        return raw;
+
+    if (!cfw_lyrics_has_timestamp_header(raw))
+        return raw;
+
+    if (!len)
+        len = cfw_strlen(raw);
+    if (len < 8)
+        return raw;
+
+    if (!global_lyrics.has_synced ||
+        global_lyrics.lines[0].text < raw ||
+        global_lyrics.lines[0].text >= raw + len) {
+        cfw_lyrics_parse(raw, len, &global_lyrics);
+    }
+
+    if (global_lyrics.has_synced) {
+        struct osos_player *player = osos_player_get();
+        uint32_t ms = player ? osos_player_get_position(player) : 0;
+        return cfw_lyrics_format_window(&global_lyrics, ms);
+    }
+
+    return raw;
+}
+
+int cfw_text_view_draw_original(void *view, const char *text, void *context);
+
+PATCH_ARM int cfw_text_view_draw(void *view, const char *text, void *context)
+{
+    if (text && cfw_lyrics_has_timestamp_header(text)) {
+        text = cfw_lyrics_get_display_text(text, 0);
+    }
+    return cfw_text_view_draw_original(view, text, context);
+}
+
+void cfw_lyrics_tick(void)
+{
+    if (!global_lyrics.has_synced)
+        return;
+
+    struct osos_player *player = osos_player_get();
+    if (!player)
+        return;
+
+    uint32_t ms = osos_player_get_position(player);
+    uint32_t active = cfw_lyrics_find_active(&global_lyrics, ms);
+
+    if (active != global_lyrics.active_index) {
+        global_lyrics.active_index = active;
+        osos_ui_invalidate();
+    }
+}
 
 void cfw_lyrics_reset(struct cfw_lyrics_state *state)
 {

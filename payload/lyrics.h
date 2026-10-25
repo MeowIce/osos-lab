@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "patch.h"
 
 #define CFW_LYRICS_MAX_LINES 256
 #define CFW_LYRICS_BUFFER_SIZE 2048
@@ -40,3 +41,24 @@ void cfw_lyrics_on_wheel(struct cfw_lyrics_state *state, int delta, uint32_t cur
 
 /* Reset lyrics state on track change or stop. */
 void cfw_lyrics_reset(struct cfw_lyrics_state *state);
+
+/* Return focused window text if raw is timestamped lyrics, or original text if static. */
+const char *cfw_lyrics_get_display_text(const char *raw, uint32_t len);
+
+/* Periodic tick to invalidate UI when active line changes during playback. */
+void cfw_lyrics_tick(void);
+
+/* Check if synchronized lyrics are currently active. */
+int cfw_lyrics_is_active(void);
+
+/* Check if raw text starts with LRC / timestamped lyrics tag. */
+int cfw_lyrics_has_timestamp_header(const char *raw);
+
+/* Scroll global lyrics by wheel delta. */
+void cfw_lyrics_scroll(int delta, uint32_t current_ms);
+
+/* Reset active global lyrics. */
+void cfw_lyrics_reset_active(void);
+
+/* Intercepted TextView draw routine. */
+int cfw_text_view_draw(void *view, const char *text, void *context);
