@@ -98,33 +98,20 @@ const void *cfw_dark_mode_color(uint32_t id, const void *color)
     return &light;
 }
 
-/*
- * Brightens the light-mode blues, which are too dim on a dark background. Writes the
- * accent to `out` in the same channel order as `color` (matched as RGB or BGR) and
- * keeps the alpha byte.
- */
 static int accent_color(const unsigned char *color, uint32_t light, unsigned char *out)
 {
     uint32_t rgb = (color[0] << 16) | (color[1] << 8) | color[2];
-    uint32_t bgr = (color[2] << 16) | (color[1] << 8) | color[0];
-    if (rgb == light) {
-        out[0] = (ACCENT_DARK >> 16) & 0xff;
-        out[1] = (ACCENT_DARK >> 8) & 0xff;
-        out[2] = ACCENT_DARK & 0xff;
-    } else if (bgr == light) {
-        out[0] = ACCENT_DARK & 0xff;
-        out[1] = (ACCENT_DARK >> 8) & 0xff;
-        out[2] = (ACCENT_DARK >> 16) & 0xff;
-    } else {
+    if (rgb != light)
         return 0;
-    }
+    out[0] = (ACCENT_DARK >> 16) & 0xff;
+    out[1] = (ACCENT_DARK >> 8) & 0xff;
+    out[2] = ACCENT_DARK & 0xff;
     out[3] = color[3];
     return 1;
 }
 
 PATCH_ARM void cfw_dark_mode_fill(void *surface, const void *rect,
-                                const unsigned char *color, uint32_t mode,
-                                void *clip)
+                                  const unsigned char *color, uint32_t mode, void *clip)
 {
     unsigned char mapped[4];
     int shade = -1;
@@ -134,10 +121,8 @@ PATCH_ARM void cfw_dark_mode_fill(void *surface, const void *rect,
     /* CoverFlow_Backside_Border_Color (COLR 0x0dad05d8). */
     else if (enabled && color[0] == 0x7e && color[1] == 0x81 && color[2] == 0x83)
         shade = COVER_FLOW_BORDER_DARK;
-    else if (enabled && accent_color(color, ACCENT_FILL_LIGHT, mapped)) {
-        osos_surface_fill_rect(surface, rect, mapped, mode, clip);
-        return;
-    }
+    else if (enabled && accent_color(color, ACCENT_FILL_LIGHT, mapped))
+        color = mapped;
     if (shade >= 0) {
         mapped[0] = mapped[1] = mapped[2] = shade;
         mapped[3] = color[3];
@@ -154,7 +139,7 @@ PATCH_ARM void cfw_dark_mode_clear_color(int red, int green, int blue, int alpha
 }
 
 PATCH_ARM uint32_t cfw_dark_mode_reflection_blend(uint32_t pixel, uint32_t background,
-                                                int weight)
+                                                  int weight)
 {
     if (enabled)
         background = ((BACKGROUND_DARK_BASE >> 3) << 11) |
