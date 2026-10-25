@@ -79,3 +79,7 @@
 #define OSOS_MEDIA_LIST_OTG_ADD_CALL 0x0820f9cc
 #define OSOS_ALBUMS_CANCEL_APPEND_CALL 0x0821c004
 #define OSOS_ARTISTS_CANCEL_APPEND_CALL 0x0821fee8
+
+/* iAP accessory authentication: device-signature verifier entries. */
+#define OSOS_IAP_AUTH_VERIFY_A 0x0812dca8
+#define OSOS_IAP_AUTH_VERIFY_B 0x081592fc

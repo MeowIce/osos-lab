@@ -133,3 +133,10 @@ PATCH_CALL(OSOS_ARTISTS_CANCEL_APPEND_CALL, OSOS_CONTEXT_MENU_APPEND,
 /* Albums, Artists and other library lists share this dispatcher. */
 PATCH_JUMP(OSOS_MEDIA_LIST_ACTION_ENTRY, 0xe92d41f0, 0xe1a07001, cfw_media_list_action);
 PATCH_CALL(OSOS_MEDIA_LIST_OTG_ADD_CALL, OSOS_OTG_ADD_BROWSER, cfw_queue_selection);
+
+/* iAP accessory authentication bypass: force both device-signature verifiers to
+ * report success so accessories authenticate without a Made-for-iPod coprocessor. */
+/* stmdb sp!,{r4-r9,lr}; sub sp,sp,#0x6c */
+PATCH_JUMP(OSOS_IAP_AUTH_VERIFY_A, 0xe92d43f0, 0xe24dd06c, cfw_iap_auth_verify);
+/* stmdb sp!,{r2,r3,r4,lr}; cmp r1,#0 */
+PATCH_JUMP(OSOS_IAP_AUTH_VERIFY_B, 0xe92d401c, 0xe3510000, cfw_iap_auth_verify);
