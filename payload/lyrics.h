@@ -60,5 +60,11 @@ void cfw_lyrics_scroll(int delta, uint32_t current_ms);
 /* Reset active global lyrics. */
 void cfw_lyrics_reset_active(void);
 
+/* Format time line "mm:ss        -mm:ss". */
+void cfw_lyrics_format_time_line(char *buf, uint32_t max_len, uint32_t current_ms, uint32_t duration_ms);
+
+/* Get formatted text for a single lyric line. */
+void cfw_lyrics_get_line_text(const struct cfw_lyrics_state *state, int32_t index, char *buf, uint32_t max_len, int is_active);
+
 /* Intercepted TextView draw routine. */
 int cfw_text_view_draw(void *view, const char *text, void *context);

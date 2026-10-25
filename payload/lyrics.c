@@ -2,8 +2,10 @@
 
 #include "lyrics.h"
 #include "osos.h"
+#include "dark_mode.h"
 
 static struct cfw_lyrics_state global_lyrics;
+static uint32_t last_tick_sec;
 
 int cfw_lyrics_is_active(void)
 {
@@ -86,14 +88,281 @@ const char *cfw_lyrics_get_display_text(const char *raw, uint32_t len)
     return raw;
 }
 
+void cfw_lyrics_get_line_text(const struct cfw_lyrics_state *state, int32_t index,
+                             char *buf, uint32_t max_len, int is_active)
+{
+    if (!buf || max_len == 0)
+        return;
+    buf[0] = '\0';
+    if (!state || !state->has_synced || state->count == 0)
+        return;
+
+    uint32_t pos = 0;
+    if (index < 0) {
+        const char *intro = "   (Intro)";
+        while (intro[pos] && pos + 1 < max_len) {
+            buf[pos] = intro[pos];
+            pos++;
+        }
+        buf[pos] = '\0';
+        return;
+    }
+
+    if (index >= (int32_t)state->count) {
+        const char *outro = "   (Outro)";
+        while (outro[pos] && pos + 1 < max_len) {
+            buf[pos] = outro[pos];
+            pos++;
+        }
+        buf[pos] = '\0';
+        return;
+    }
+
+    if (is_active) {
+        /* UTF-8 '▶ ' is 0xe2, 0x96, 0xb6, ' ' */
+        buf[pos++] = (char)0xe2;
+        buf[pos++] = (char)0x96;
+        buf[pos++] = (char)0xb6;
+        buf[pos++] = ' ';
+    } else {
+        buf[pos++] = ' ';
+        buf[pos++] = ' ';
+        buf[pos++] = ' ';
+    }
+
+    const struct cfw_lyric_entry *entry = &state->lines[index];
+    for (uint32_t i = 0; i < entry->len && pos + 1 < max_len; i++) {
+        buf[pos++] = entry->text[i];
+    }
+    buf[pos] = '\0';
+}
+
+static void format_two_digits(char *dest, uint32_t val)
+{
+    dest[0] = (char)('0' + (val / 10));
+    dest[1] = (char)('0' + (val % 10));
+}
+
+void cfw_lyrics_format_time_line(char *buf, uint32_t max_len,
+                                uint32_t current_ms, uint32_t duration_ms)
+{
+    if (!buf || max_len < 64)
+        return;
+
+    uint32_t elapsed_sec = current_ms / 1000;
+    uint32_t pos = 0;
+
+    format_two_digits(&buf[pos], elapsed_sec / 60);
+    pos += 2;
+    buf[pos++] = ':';
+    format_two_digits(&buf[pos], elapsed_sec % 60);
+    pos += 2;
+
+    if (duration_ms > current_ms) {
+        uint32_t remain_sec = (duration_ms - current_ms) / 1000;
+        while (pos < 36 && pos + 8 < max_len)
+            buf[pos++] = ' ';
+        buf[pos++] = '-';
+        format_two_digits(&buf[pos], remain_sec / 60);
+        pos += 2;
+        buf[pos++] = ':';
+        format_two_digits(&buf[pos], remain_sec % 60);
+        pos += 2;
+    }
+
+    buf[pos] = '\0';
+}
+
+#ifndef HOST_TEST
+static void *get_bold_font(void)
+{
+    static void *cached_bold_font;
+    if (!cached_bold_font) {
+        void *bank = osos_ui_resources();
+        if (bank) {
+            void *desc = osos_resource_service_get(bank, 0x464f4e54, 0x0dad0012);
+            if (desc) {
+                typedef void *(*fn)(void *);
+                cached_bold_font = ((fn)OSOS_FONT_LOOKUP)(desc);
+            }
+        }
+    }
+    return cached_bold_font;
+}
+
+static void draw_progress_bar(void *view, uint32_t current_ms, uint32_t duration_ms)
+{
+    if (!view || !duration_ms)
+        return;
+
+    void *gc = (uint8_t *)view + 0xa4;
+    int dark = cfw_dark_mode_enabled();
+
+    unsigned char color[4];
+    color[0] = dark ? 0x40 : 0xd0;
+    color[1] = color[0];
+    color[2] = color[0];
+    color[3] = 0xff;
+
+    int32_t bar_x = 24;
+    int32_t bar_w = 272;
+    int32_t bar_y = 154;
+    int32_t bar_h = 3;
+
+    int32_t rect_buf[4];
+    rect_buf[0] = bar_x;
+    rect_buf[1] = bar_y;
+    rect_buf[2] = bar_x + bar_w;
+    rect_buf[3] = bar_y + bar_h;
+
+    int32_t fill_w = (int32_t)(((uint64_t)current_ms * bar_w) / duration_ms);
+    if (fill_w > bar_w)
+        fill_w = bar_w;
+
+    typedef void (*set_color_fn)(void *, const unsigned char *);
+    typedef void (*set_mode_fn)(void *, uint32_t);
+    typedef void (*fill_rect_fn)(void *, const int32_t *);
+
+    /* 1. Track */
+    ((set_color_fn)OSOS_GRAPHICS_SET_COLOR)(gc, color);
+    ((set_mode_fn)OSOS_GRAPHICS_SET_MODE)(gc, 0);
+    ((fill_rect_fn)OSOS_GRAPHICS_FILL_RECT)(gc, rect_buf);
+
+    if (fill_w > 0) {
+        /* 2. Fill */
+        color[0] = dark ? 0x00 : 0x23;
+        color[1] = dark ? 0xa1 : 0x6c;
+        color[2] = dark ? 0xff : 0xc5;
+        rect_buf[2] = bar_x + fill_w;
+        ((set_color_fn)OSOS_GRAPHICS_SET_COLOR)(gc, color);
+        ((fill_rect_fn)OSOS_GRAPHICS_FILL_RECT)(gc, rect_buf);
+
+        /* 3. Thumb */
+        color[0] = 0xff;
+        color[1] = 0xff;
+        color[2] = 0xff;
+        rect_buf[0] = bar_x + fill_w - 2;
+        rect_buf[1] = bar_y - 2;
+        rect_buf[2] = bar_x + fill_w + 3;
+        rect_buf[3] = bar_y + bar_h + 2;
+        ((set_color_fn)OSOS_GRAPHICS_SET_COLOR)(gc, color);
+        ((fill_rect_fn)OSOS_GRAPHICS_FILL_RECT)(gc, rect_buf);
+    }
+
+    ((set_mode_fn)OSOS_GRAPHICS_SET_MODE)(gc, 0x21);
+}
+#else
+static void *get_bold_font(void)
+{
+    return (void *)0xb01df007;
+}
+
+static void draw_progress_bar(void *view, uint32_t current_ms, uint32_t duration_ms)
+{
+    (void)view;
+    (void)current_ms;
+    (void)duration_ms;
+}
+#endif
+
 int cfw_text_view_draw_original(void *view, const char *text, void *context);
 
 PATCH_ARM int cfw_text_view_draw(void *view, const char *text, void *context)
 {
-    if (text && cfw_lyrics_has_timestamp_header(text)) {
-        text = cfw_lyrics_get_display_text(text, 0);
+    if (!text || !cfw_lyrics_has_timestamp_header(text))
+        return cfw_text_view_draw_original(view, text, context);
+
+    cfw_lyrics_get_display_text(text, 0);
+    if (!global_lyrics.has_synced || !view) {
+        const char *win = cfw_lyrics_get_display_text(text, 0);
+        return cfw_text_view_draw_original(view, win, context);
     }
-    return cfw_text_view_draw_original(view, text, context);
+
+    struct osos_player *player = osos_player_get();
+    uint32_t current_ms = player ? osos_player_get_position(player) : 0;
+    uint32_t duration_ms = 0;
+#ifndef HOST_TEST
+    if (player) {
+        struct osos_media_item item;
+        osos_media_item_init(&item);
+        osos_player_current_item(player, &item);
+        if (osos_media_item_valid(&item))
+            duration_ms = osos_media_item_duration(&item);
+    }
+#else
+    extern uint32_t mock_playback_duration;
+    duration_ms = mock_playback_duration;
+#endif
+
+    if (global_lyrics.user_scrolled) {
+        if (current_ms >= global_lyrics.last_user_scroll_ms &&
+            (current_ms - global_lyrics.last_user_scroll_ms) > CFW_LYRICS_USER_SCROLL_TIMEOUT_MS) {
+            global_lyrics.user_scrolled = 0;
+            global_lyrics.scroll_offset = 0;
+        }
+    }
+
+    global_lyrics.active_index = cfw_lyrics_find_active(&global_lyrics, current_ms);
+    int32_t target = (int32_t)global_lyrics.active_index;
+    if (global_lyrics.user_scrolled) {
+        target += global_lyrics.scroll_offset;
+        if (target < 0)
+            target = 0;
+        if (target >= (int32_t)global_lyrics.count)
+            target = (int32_t)global_lyrics.count - 1;
+    }
+
+    char prev_buf[256];
+    char active_buf[256];
+    char next_buf[256];
+    char time_buf[64];
+
+    cfw_lyrics_get_line_text(&global_lyrics, target - 1, prev_buf, sizeof(prev_buf), 0);
+    cfw_lyrics_get_line_text(&global_lyrics, target, active_buf, sizeof(active_buf), 1);
+    cfw_lyrics_get_line_text(&global_lyrics, target + 1, next_buf, sizeof(next_buf), 0);
+    cfw_lyrics_format_time_line(time_buf, sizeof(time_buf), current_ms, duration_ms);
+
+    int32_t *rect = (int32_t *)((uint8_t *)view + 0x80);
+    void **font_ptr = (void **)((uint8_t *)view + 256);
+    int32_t orig_x = rect[0], orig_y = rect[1], orig_w = rect[2], orig_h = rect[3];
+    void *orig_font = *font_ptr;
+    void *bold_font = get_bold_font();
+
+    /* Pass 1: Previous line (small regular font) */
+    rect[1] = orig_y + 6;
+    rect[3] = 26;
+    *font_ptr = orig_font;
+    cfw_text_view_draw_original(view, prev_buf, context);
+
+    /* Pass 2: Active line (larger bold font!) */
+    rect[1] = orig_y + 36;
+    rect[3] = 52;
+    *font_ptr = bold_font ? bold_font : orig_font;
+    cfw_text_view_draw_original(view, active_buf, context);
+
+    /* Pass 3: Next line (small regular font) */
+    rect[1] = orig_y + 92;
+    rect[3] = 26;
+    *font_ptr = orig_font;
+    cfw_text_view_draw_original(view, next_buf, context);
+
+    /* Pass 4: Time indicators */
+    rect[1] = orig_y + 128;
+    rect[3] = 18;
+    *font_ptr = orig_font;
+    cfw_text_view_draw_original(view, time_buf, context);
+
+    /* Restore view geometry and font */
+    rect[0] = orig_x;
+    rect[1] = orig_y;
+    rect[2] = orig_w;
+    rect[3] = orig_h;
+    *font_ptr = orig_font;
+
+    /* Pass 5: Progress bar graphical render */
+    draw_progress_bar(view, current_ms, duration_ms);
+
+    return 1;
 }
 
 void cfw_lyrics_tick(void)
@@ -107,9 +376,11 @@ void cfw_lyrics_tick(void)
 
     uint32_t ms = osos_player_get_position(player);
     uint32_t active = cfw_lyrics_find_active(&global_lyrics, ms);
+    uint32_t sec = ms / 1000;
 
-    if (active != global_lyrics.active_index) {
+    if (active != global_lyrics.active_index || sec != last_tick_sec) {
         global_lyrics.active_index = active;
+        last_tick_sec = sec;
         osos_ui_invalidate();
     }
 }
@@ -125,6 +396,7 @@ void cfw_lyrics_reset(struct cfw_lyrics_state *state)
     state->scroll_offset = 0;
     state->last_user_scroll_ms = 0;
     state->window_buffer[0] = '\0';
+    last_tick_sec = 0;
 }
 
 int cfw_lyrics_parse(const char *raw, uint32_t len, struct cfw_lyrics_state *state)
