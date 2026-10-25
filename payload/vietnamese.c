@@ -185,7 +185,7 @@ static const struct vi_entry translations[] = {
     {"On", "Bật"},
     {"Off", "Tắt"},
     {"All", "Tất cả"},
-    {"One", "Một bài"},
+    {"One", "1 bài"},
     {"None", "Không"},
     {"Speaker", "Loa"},
     {"Headphones", "Tai nghe"},

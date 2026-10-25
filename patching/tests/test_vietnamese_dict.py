@@ -32,3 +32,17 @@ class VietnameseTranslationTests(unittest.TestCase):
         for pair, desc in required_pairs:
             with self.subTest(desc=desc):
                 self.assertIn(pair, source)
+
+    def test_toggle_values_are_font_safe(self):
+        source = Path("payload/vietnamese.c").read_text(encoding="utf-8")
+        # Ensure toggle values don't use unsupported compound diacritics
+        self.assertIn('{"All", "Tất cả"}', source)
+        self.assertIn('{"One", "1 bài"}', source)
+        self.assertIn('{"Songs", "Bài hát"}', source)
+
+    def test_font_style_descriptor_patch_declared(self):
+        sites = Path("payload/patches/sites.h").read_text()
+        patches = Path("payload/patches/patches.c").read_text()
+        self.assertIn("OSOS_SETTINGS_STYLE_FONT_WORD", sites)
+        self.assertIn("PATCH_WORD(OSOS_SETTINGS_STYLE_FONT_WORD, 0x0dad0020, 0x0dad0021)", patches)
+
