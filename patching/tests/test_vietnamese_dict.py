@@ -65,3 +65,11 @@ class VietnameseTranslationTests(unittest.TestCase):
         self.assertNotIn("OSOS_SETTINGS_TOGGLE_STYLE_FONT_WORD", patches)
         self.assertNotIn("OSOS_FONT_RESOURCE_PLAIN_STYLE_WORD", patches)
 
+    def test_settings_toggle_property_mapping(self):
+        settings = Path("payload/settings.c").read_text(encoding="utf-8")
+        self.assertIn("property == 0x8905", settings)
+        self.assertIn('"Ca kh\\xc3\\xba" "c"', settings)
+        self.assertIn("property == 0x8907", settings)
+        self.assertIn('"1"', settings)
+        self.assertIn('"B\\xe1\\xba\\xadt"', settings)
+

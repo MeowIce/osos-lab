@@ -144,6 +144,8 @@ static int settings_property(void *value, uint32_t type, uint32_t property, uint
     assert(value == &model);
     (void)type;
     stock_properties++;
+    if (property == 0x8905 || property == 0x8907 || property == 0x891b)
+        return 1;
     *out = 5;
     return property == 123;
 }
@@ -154,14 +156,17 @@ int cfw_eq_action(const char *action, uint32_t argument)
     return !strcmp(action, "CFW_EQ_Open");
 }
 
-int cfw_vietnamese_enabled(void) { return 0; }
+static int vi_enabled = 0;
+int cfw_vietnamese_enabled(void) { return vi_enabled; }
 const char *cfw_vietnamese_translate(const char *s) { return s; }
 
 void cfw_album_artists_menu_adjust_property(uint32_t type, uint32_t property, uintptr_t *out)
 {
-    assert(type == OSOS_PROPERTY_COUNT && property == 123 && *out == 5);
-    adjustments++;
-    ++*out;
+    if (type == OSOS_PROPERTY_COUNT && property == 123) {
+        assert(*out == 5);
+        adjustments++;
+        ++*out;
+    }
 }
 
 #define osos_settings_action settings_action
@@ -183,6 +188,47 @@ int main(void)
     assert(cfw_settings_action(&controller, "CFW_EQ_Open", 0));
     assert(cfw_settings_action(&controller, "CFW_DarkMode_Toggle", OSOS_ACTION_SUPPORT_QUERY));
     assert(stock_actions == 1 && !writes && !redraws && !icon_notifications);
+
+    /* Vietnamese toggle property handling */
+    vi_enabled = 1;
+    value = (uintptr_t)"B\xc3\xa0i h\xc3\xa1t";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(!strcmp((const char *)value, "Ca kh\xc3\xba" "c"));
+
+    value = (uintptr_t)"Songs";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(!strcmp((const char *)value, "Ca kh\xc3\xba" "c"));
+
+    value = (uintptr_t)"Off";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(!strcmp((const char *)value, "Off"));
+
+    value = (uintptr_t)"One";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(!strcmp((const char *)value, "1"));
+
+    value = (uintptr_t)"All";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(!strcmp((const char *)value, "B\xe1\xba\xadt"));
+
+    value = (uintptr_t)"T\xe1\xba\xa5t c\xe1\xba\xa3";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(!strcmp((const char *)value, "B\xe1\xba\xadt"));
+
+    value = (uintptr_t)"T\xe1\xba\xaft";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(!strcmp((const char *)value, "T\xe1\xba\xaft"));
+
+    /* Side panel descriptions must not be clobbered */
+    value = (uintptr_t)"Shuffle Entire Music Library";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x891b, &value));
+    assert(!strcmp((const char *)value, "Shuffle Entire Music Library"));
+
+    /* English mode bypass */
+    vi_enabled = 0;
+    value = (uintptr_t)"Songs";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(!strcmp((const char *)value, "Songs"));
 
     const unsigned char fills[][4] = {
         {255, 255, 255, 173}, {0x7e, 0x81, 0x83, 127}, {35, 108, 196, 91},
