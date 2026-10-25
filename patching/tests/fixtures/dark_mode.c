@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 /* Native layout assertions assume 32-bit pointers; this fixture runs on the host. */
 #define _Static_assert(...)
 #include "../../../payload/osos.h"
@@ -319,16 +320,18 @@ int main(void)
     assert(icon_notifications == 4);
     assets_ready = 0;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(!cfw_dark_mode_enabled() && writes == 2 && redraws == 2);
+    assert(cfw_dark_mode_enabled() && writes == 3 && redraws == 3);
     disk_record = DARK_MODE_ON_RECORD;
     cfw_dark_mode_load();
-    assert(!cfw_dark_mode_enabled());
+    assert(cfw_dark_mode_enabled());
+    assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
+    assert(!cfw_dark_mode_enabled() && writes == 4 && redraws == 4);
     assets_ready = 1;
     fail_write = 1;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(!cfw_dark_mode_enabled() && redraws == 2 && notifications == 2);
-    assert(icon_notifications == 4 && !icon_invalidations);
-    assert(closes == 6);
+    assert(!cfw_dark_mode_enabled() && redraws == 4 && notifications == 4);
+    assert(icon_notifications == 8 && !icon_invalidations);
+    assert(closes == 8);
     disk_record = DARK_MODE_ON_RECORD;
     disk_size = 2;
     cfw_dark_mode_load();
@@ -340,23 +343,18 @@ int main(void)
     fail_write = 0;
     now_playing_available = 0;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(cfw_dark_mode_enabled() && redraws == 3 && notifications == 3);
-    assert(icon_notifications == 4);
-    int previous_writes = writes;
-    assets_ready = 0;
-    assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(cfw_dark_mode_enabled() && disk_record == DARK_MODE_ON_RECORD);
-    assert(writes == previous_writes && redraws == 3 && notifications == 3);
+    assert(cfw_dark_mode_enabled() && redraws == 5 && notifications == 5);
+    assert(icon_notifications == 8);
     assets_ready = 1;
     fail_write = 1;
     int previous_cancellations = asset_cancellations;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
     assert(cfw_dark_mode_enabled() && disk_record == DARK_MODE_ON_RECORD);
     assert(asset_cancellations == previous_cancellations + 1);
-    assert(redraws == 3 && notifications == 3);
+    assert(redraws == 5 && notifications == 5);
     fail_write = 0;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
     assert(!cfw_dark_mode_enabled() && disk_record == DARK_MODE_OFF_RECORD);
-    assert(redraws == 4 && notifications == 4);
+    assert(redraws == 6 && notifications == 6);
     check_clicker();
 }

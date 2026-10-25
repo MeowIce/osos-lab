@@ -22,20 +22,21 @@ enum {
     ACCENT_DARK = 0x00a1ff,
 };
 
+static unsigned int enabled;
 static const struct osos_path settings_path = {0, "iPod_Control\\Device\\CFWDark"};
 
 int cfw_dark_mode_enabled(void)
 {
-    return cfw_assets_enabled();
+    return enabled != 0;
 }
 
 void cfw_dark_mode_load(void)
 {
     uint32_t record;
-    int next = cfw_preferences_read(&settings_path, &record, sizeof(record)) &&
-               record == DARK_MODE_ON_RECORD;
-    if (next != cfw_assets_enabled() && cfw_assets_prepare())
-        cfw_assets_set_enabled(next);
+    enabled = cfw_preferences_read(&settings_path, &record, sizeof(record)) &&
+              record == DARK_MODE_ON_RECORD;
+    if (enabled != (unsigned int)cfw_assets_enabled() && cfw_assets_prepare())
+        cfw_assets_set_enabled(enabled);
 }
 
 static int save(unsigned int value)
@@ -60,10 +61,11 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
         return 1;
 
     int next = !cfw_dark_mode_enabled();
-    if (!cfw_assets_prepare())
-        return 1;
+    int assets_ready = cfw_assets_prepare();
     if (save(next)) {
-        cfw_assets_set_enabled(next);
+        enabled = next;
+        if (assets_ready)
+            cfw_assets_set_enabled(next);
         osos_model_notify(osos_settings_model(controller), OSOS_NOTIFY_ALL,
                           CFW_DarkMode_Value);
         void *now_playing = osos_now_playing_model();
@@ -73,7 +75,7 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
             osos_model_notify(now_playing, OSOS_RESOURCE_DRAW, 0x7f0d);
         }
         osos_ui_invalidate();
-    } else {
+    } else if (assets_ready) {
         cfw_assets_cancel();
     }
     return 1;
