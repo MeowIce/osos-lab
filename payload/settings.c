@@ -25,12 +25,12 @@ PATCH_ARM int cfw_settings_property(void *model, uint32_t type,
         cfw_album_artists_menu_adjust_property(type, property, out);
     if (result && type == OSOS_PROPERTY_STRING && out && *out && cfw_vietnamese_enabled()) {
         const char *s = (const char *)*out;
-        if (property == 0x8905) {
+        if (property == 0x8904) {
             if ((s[0] == 'B' && (unsigned char)s[1] == 0xc3) ||
                 (s[0] == 'S' && s[1] == 'o'))
                 *out = (uintptr_t)"B.h\xc3\xa1t";
         }
-        if (property == 0x8907) {
+        if (property == 0x8906) {
             if (s[0] == '1' || (s[0] == 'O' && s[1] == 'n') ||
                 (s[0] == 'M' && (unsigned char)s[1] == 0xe1))
                 *out = (uintptr_t)"1";

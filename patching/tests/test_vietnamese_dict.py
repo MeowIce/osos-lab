@@ -52,7 +52,7 @@ class VietnameseTranslationTests(unittest.TestCase):
         self.assertIn('{"None", "Tắt"}', source)
         self.assertIn('{"Beep", "Bíp"}', source)
         self.assertIn('{"Songs", "Bài hát"}', source)
-        self.assertIn('id == 0x0dad0b94', assets)
+        self.assertIn('id == 0x0dad0b91', assets)
         self.assertIn('return "B.h\\xc3\\xa1t";', assets)
 
     def test_stock_toggle_font_preserved(self):
@@ -67,9 +67,9 @@ class VietnameseTranslationTests(unittest.TestCase):
 
     def test_settings_toggle_property_mapping(self):
         settings = Path("payload/settings.c").read_text(encoding="utf-8")
-        self.assertIn("property == 0x8905", settings)
+        self.assertIn("property == 0x8904", settings)
         self.assertIn('"B.h\\xc3\\xa1t"', settings)
-        self.assertIn("property == 0x8907", settings)
+        self.assertIn("property == 0x8906", settings)
         self.assertIn('"1"', settings)
         self.assertIn('"B\\xe1\\xba\\xadt"', settings)
 

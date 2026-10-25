@@ -144,7 +144,7 @@ static int settings_property(void *value, uint32_t type, uint32_t property, uint
     assert(value == &model);
     (void)type;
     stock_properties++;
-    if (property == 0x8905 || property == 0x8907 || property == 0x891b)
+    if (property >= 0x8904 && property <= 0x8907)
         return 1;
     *out = 5;
     return property == 123;
@@ -192,42 +192,46 @@ int main(void)
     /* Vietnamese toggle property handling */
     vi_enabled = 1;
     value = (uintptr_t)"B\xc3\xa0i h\xc3\xa1t";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8904, &value));
     assert(!strcmp((const char *)value, "B.h\xc3\xa1t"));
 
     value = (uintptr_t)"Songs";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8904, &value));
     assert(!strcmp((const char *)value, "B.h\xc3\xa1t"));
 
     value = (uintptr_t)"Off";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8904, &value));
     assert(!strcmp((const char *)value, "Off"));
 
     value = (uintptr_t)"One";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8906, &value));
     assert(!strcmp((const char *)value, "1"));
 
     value = (uintptr_t)"All";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8906, &value));
     assert(!strcmp((const char *)value, "B\xe1\xba\xadt"));
 
     value = (uintptr_t)"T\xe1\xba\xa5t c\xe1\xba\xa3";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8906, &value));
     assert(!strcmp((const char *)value, "B\xe1\xba\xadt"));
 
     value = (uintptr_t)"T\xe1\xba\xaft";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8906, &value));
     assert(!strcmp((const char *)value, "T\xe1\xba\xaft"));
 
     /* Side panel descriptions must not be clobbered */
     value = (uintptr_t)"Shuffle Entire Music Library";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x891b, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
     assert(!strcmp((const char *)value, "Shuffle Entire Music Library"));
+
+    value = (uintptr_t)"Repeat Current Song";
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8907, &value));
+    assert(!strcmp((const char *)value, "Repeat Current Song"));
 
     /* English mode bypass */
     vi_enabled = 0;
     value = (uintptr_t)"Songs";
-    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8905, &value));
+    assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, 0x8904, &value));
     assert(!strcmp((const char *)value, "Songs"));
 
     const unsigned char fills[][4] = {
