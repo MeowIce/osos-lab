@@ -1,29 +1,46 @@
+# SPDX-License-Identifier: GPL-3.0-only
+"""Contracts for Language menu extension patch sites and bindings."""
+
 import shutil
 import subprocess
 import unittest
 from pathlib import Path
 
+
 class LanguageHooksTests(unittest.TestCase):
     def test_language_sites_and_patches_declared(self):
         sites = Path("payload/patches/sites.h").read_text()
         patches = Path("payload/patches/patches.c").read_text()
-        
+
         self.assertIn("#define OSOS_LANGUAGE_COUNT_WORD 0x081e1d9c", sites)
         self.assertIn("#define OSOS_LANGUAGE_NAME_ENTRY 0x081e1ea8", sites)
         self.assertIn("#define OSOS_LANGUAGE_SELECT_CALL 0x0821e380", sites)
         self.assertIn("#define OSOS_LANGUAGE_CURRENT_INDEX_ENTRY 0x081e21e0", sites)
 
-        self.assertIn("PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a00015, 0xe3a00016);", patches)
-        self.assertIn("PATCH_JUMP(OSOS_LANGUAGE_NAME_ENTRY, 0xe92d4010, 0xe1a04001, cfw_language_name);", patches)
-        self.assertIn("PATCH_CALL(OSOS_LANGUAGE_SELECT_CALL, OSOS_LANGUAGE_SET, cfw_language_select);", patches)
-        self.assertIn("PATCH_JUMP(OSOS_LANGUAGE_CURRENT_INDEX_ENTRY, 0xe92d4010, 0xe5900378, cfw_language_current_index);", patches)
+        self.assertIn(
+            "PATCH_WORD(OSOS_LANGUAGE_COUNT_WORD, 0xe3a00015, 0xe3a00016);", patches
+        )
+        self.assertIn(
+            "PATCH_JUMP(OSOS_LANGUAGE_NAME_ENTRY, 0xe92d4010, 0xe1a04001, cfw_language_name);",
+            patches,
+        )
+        self.assertIn(
+            "PATCH_CALL(OSOS_LANGUAGE_SELECT_CALL, OSOS_LANGUAGE_SET, cfw_language_select);",
+            patches,
+        )
+        self.assertIn(
+            "PATCH_JUMP(OSOS_LANGUAGE_CURRENT_INDEX_ENTRY, 0xe92d4010, 0xe5900378, cfw_language_current_index);",
+            patches,
+        )
 
     def test_language_trampoline_and_headers(self):
         sites = Path("payload/patches/sites.h").read_text()
         self.assertIn("#define OSOS_LANGUAGE_SET 0x081e226c", sites)
 
         lang_h = Path("payload/language.h").read_text()
-        self.assertIn("const char *cfw_language_name(void *service, uint32_t index);", lang_h)
+        self.assertIn(
+            "const char *cfw_language_name(void *service, uint32_t index);", lang_h
+        )
         self.assertIn("void cfw_language_select(void *model, uint32_t index);", lang_h)
         self.assertIn("int cfw_language_current_index(void *model);", lang_h)
 

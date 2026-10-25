@@ -54,9 +54,7 @@ fn error(operation: &'static str, code: u32) -> Error {
         ERROR_DEVICE_NOT_CONNECTED
         | ERROR_NO_SUCH_DEVICE
         | ERROR_FILE_NOT_FOUND
-        | ERROR_OPERATION_ABORTED => {
-            usb_error(operation, rusb::Error::NoDevice)
-        }
+        | ERROR_OPERATION_ABORTED => usb_error(operation, rusb::Error::NoDevice),
         _ => invalid(format!(
             "USB {operation}: {}",
             io::Error::from_raw_os_error(code as i32)

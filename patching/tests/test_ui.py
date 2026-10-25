@@ -362,6 +362,5 @@ class UiTests(unittest.TestCase):
         self.assertFalse((root / "payload/vietnamese.ui").exists())
 
 
-
 if __name__ == "__main__":
     unittest.main()
