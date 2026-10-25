@@ -512,6 +512,31 @@ static const struct vi_entry translations[] = {
     {"Start Genius", "Bắt đầu Genius"},
     {"Creating Genius Playlist", "Đang tạo danh sách Genius..."},
     {"Genius is unavailable for the selected song.", "Genius không khả dụng cho bài hát này."},
+
+    /* Settings, Sort By, Now Playing & Side panel descriptions */
+    {"First", "Tên"},
+    {"Last", "Họ"},
+    {"%d of %d", "%d trên %d"},
+    {"%d of %d Photos", "%d trên %d Ảnh"},
+    {"Sort Contacts By First Name", "Sắp xếp danh bạ theo tên"},
+    {"Sort Contacts By Last Name", "Sắp xếp danh bạ theo họ"},
+    {"Play Music Library in Sequence", "Phát thư viện nhạc theo thứ tự"},
+    {"Shuffle Entire Music Library", "Xáo trộn toàn bộ thư viện nhạc"},
+    {"Shuffle Albums in Playlist", "Xáo trộn các album trong danh sách"},
+    {"Play Current Playlist Once", "Phát danh sách hiện tại một lần"},
+    {"Repeat Current Song", "Lặp lại bài hát hiện tại"},
+    {"Repeat Current Playlist", "Lặp lại danh sách phát hiện tại"},
+    {"Customize Main Menu", "Tùy chỉnh menu chính"},
+    {"Customize Music Menu", "Tùy chỉnh menu nhạc"},
+    {"Set or Lock Volume Limit", "Đặt hoặc khóa giới hạn âm lượng"},
+    {"Press Play to Lock Volume Limit", "Nhấn Play để khóa giới hạn âm lượng"},
+    {"Turn Off Sound While Scrolling", "Tắt âm thanh khi cuộn"},
+    {"Play Sound Through Speaker", "Phát âm thanh qua loa"},
+    {"Play Sound Through Headphones", "Phát âm thanh qua tai nghe"},
+    {"Play Sound Through Headphones and Speaker", "Phát âm qua tai nghe và loa"},
+    {"Use Original Volume Level", "Dùng mức âm lượng gốc"},
+    {"Normalize Volume Across All Songs", "Chuẩn hóa âm lượng mọi bài hát"},
+    {"Adjust Scrolling Speed", "Điều chỉnh tốc độ cuộn"},
 };
 
 const char *cfw_vietnamese_translate(const char *s)
