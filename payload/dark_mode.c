@@ -7,6 +7,7 @@
 #include "cfw.h"
 #include "preferences.h"
 #include "patch.h"
+#include "resources.h"
 
 enum {
     DARK_MODE_OFF_RECORD = 0x304b5244, /* DRK0 */
@@ -14,29 +15,30 @@ enum {
     BACKGROUND_LIGHT_MIN = 0xb0,
     BACKGROUND_DARK_BASE = 0x18,
     COVER_FLOW_BORDER_DARK = 0x38,
-    COVER_FLOW_BACKSIDE_BACKGROUND_ID = 0x0dad05d9,
     TEXT_DARK_MAX = 0x80,
     TEXT_LIGHT_BASE = 0xe8,
     ACCENT_FILL_LIGHT = 0x236cc5,
     ACCENT_TEXT_LIGHT = 0x3185d0,
     ACCENT_DARK = 0x00a1ff,
+    IMG_SUN = 0x0dad0bff, /* Settings_Brightness_Image */
+    COLOR_CALENDAR_DAY = 0x0dad030f,
+    COLOR_SEARCH_INPUT = 0x0dad0dcf, /* Search_Keyboard_Background_Color */
 };
 
-static unsigned int enabled;
 static const struct osos_path settings_path = {0, "iPod_Control\\Device\\CFWDark"};
 
 int cfw_dark_mode_enabled(void)
 {
-    return enabled != 0;
+    return cfw_assets_enabled();
 }
 
 void cfw_dark_mode_load(void)
 {
     uint32_t record;
-    enabled = cfw_preferences_read(&settings_path, &record, sizeof(record)) &&
-              record == DARK_MODE_ON_RECORD;
-    if (enabled != (unsigned int)cfw_assets_enabled() && cfw_assets_prepare())
-        cfw_assets_set_enabled(enabled);
+    int next = cfw_preferences_read(&settings_path, &record, sizeof(record)) &&
+               record == DARK_MODE_ON_RECORD;
+    if (next != cfw_assets_enabled() && cfw_assets_prepare())
+        cfw_assets_set_enabled(next);
 }
 
 static int save(unsigned int value)
@@ -47,10 +49,24 @@ static int save(unsigned int value)
 
 int cfw_dark_mode_property(uint32_t type, uint32_t property, uintptr_t *out)
 {
-    if (type != OSOS_PROPERTY_STRING || property != CFW_DarkMode_Value)
+    if (type == OSOS_RESOURCE_BMAP && property == CFW_DarkMode_PreviewImage) {
+        *out = cfw_dark_mode_enabled()
+                   ? (uintptr_t)cfw_resource_bitmap(CFW_DarkMode_Moon)
+                   : osos_ui_bitmap(IMG_SUN);
+        return 1;
+    }
+    if (type != OSOS_PROPERTY_STRING)
         return 0;
-    *out = osos_settings_on_off(cfw_dark_mode_enabled());
-    return 1;
+    if (property == CFW_DarkMode_Value) {
+        *out = osos_settings_on_off(cfw_dark_mode_enabled());
+        return 1;
+    }
+    if (property == CFW_DarkMode_PreviewText) {
+        *out = osos_ui_string(cfw_dark_mode_enabled() ? CFW_DarkMode_DarkLabel
+                                                      : CFW_DarkMode_LightLabel);
+        return 1;
+    }
+    return 0;
 }
 
 int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument)
@@ -61,13 +77,14 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
         return 1;
 
     int next = !cfw_dark_mode_enabled();
-    int assets_ready = cfw_assets_prepare();
+    if (!cfw_assets_prepare())
+        return 1;
     if (save(next)) {
-        enabled = next;
-        if (assets_ready)
-            cfw_assets_set_enabled(next);
-        osos_model_notify(osos_settings_model(controller), OSOS_NOTIFY_ALL,
-                          CFW_DarkMode_Value);
+        cfw_assets_set_enabled(next);
+        void *settings = osos_settings_model(controller);
+        osos_model_notify(settings, OSOS_NOTIFY_ALL, CFW_DarkMode_Value);
+        osos_model_notify(settings, OSOS_NOTIFY_ALL, CFW_DarkMode_PreviewImage);
+        osos_model_notify(settings, OSOS_NOTIFY_ALL, CFW_DarkMode_PreviewText);
         void *now_playing = osos_now_playing_model();
         if (now_playing) {
             /* Match Apple's playback-state notifications to reload cached icons. */
@@ -75,38 +92,30 @@ int cfw_dark_mode_action(void *controller, const char *action, uint32_t argument
             osos_model_notify(now_playing, OSOS_RESOURCE_DRAW, 0x7f0d);
         }
         osos_ui_invalidate();
-    } else if (assets_ready) {
+    } else {
         cfw_assets_cancel();
     }
     return 1;
 }
 
-/*
- * The Now Playing idle clock (shown while playing on battery) draws its digits and
- * icons as light bitmaps, so it keeps its light background. COLR data is one
- * 0x00RRGGBB word; the fill only darkens neutral grays, so a one-step tint is
- * enough to leave this color alone.
- */
 const void *cfw_dark_mode_color(uint32_t id, const void *color)
 {
+    static const uint32_t dark_text = 0x000001;
     static uint32_t idle_background;
     static uint32_t light;
-    static uint32_t backside_background;
     if (!cfw_dark_mode_enabled() || !color)
         return color;
-    if (id == COVER_FLOW_BACKSIDE_BACKGROUND_ID) {
-        backside_background = (BACKGROUND_DARK_BASE << 16) |
-                              (BACKGROUND_DARK_BASE << 8) |
-                              BACKGROUND_DARK_BASE;
-        return &backside_background;
-    }
+    uint32_t rgb = *(const uint32_t *)color;
+    /* A one-step tint keeps text on light artwork out of the neutral-color remap. */
+    if (!rgb && (id == COLOR_CALENDAR_DAY || id == COLOR_SEARCH_INPUT))
+        return &dark_text;
+    /* The idle clock's light bitmap digits need their original light background. */
     if (!idle_background) {
         struct osos_string name;
         osos_string_init(&name, "NowPlaying_Idle_Background");
         idle_background = *osos_resource_name_slot(&name);
         osos_string_destroy(&name);
     }
-    uint32_t rgb = *(const uint32_t *)color;
     uint32_t blue = rgb & 0xff;
     if (id != idle_background || ((rgb >> 16) & 0xff) != blue ||
         ((rgb >> 8) & 0xff) != blue || blue < BACKGROUND_LIGHT_MIN)

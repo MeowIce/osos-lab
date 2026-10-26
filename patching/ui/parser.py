@@ -75,6 +75,7 @@ class Parser:
                 "string",
                 "screen-event",
                 "music-entry",
+                "bitmap",
             ),
         )
         for node in tree:
@@ -126,13 +127,22 @@ class Parser:
                     else self.parse_text(node)
                 )
         elif node.tag == "settings-entry":
-            attributes(node, "menu after", "open")
+            attributes(node, "menu after", "open preview image caption")
             if self.entry is not None:
                 raise ValueError("Duplicate Settings menu entry")
             self.entry = node
         elif node.tag == "string":
             attributes(node, "id text")
             document.strings[self.identifier(node)] = node.attrib["text"]
+        elif node.tag == "bitmap":
+            attributes(node, "id file", "format")
+            bitmap_format = node.get("format", "auto")
+            if bitmap_format not in ("auto", "gray8"):
+                raise ValueError("Bitmap format must be auto or gray8")
+            document.bitmaps[self.identifier(node)] = (
+                node.attrib["file"],
+                bitmap_format,
+            )
         elif node.tag == "screen-event":
             document.events.append(self.parse_screen_event(node))
         elif node.tag == "music-entry":
@@ -243,6 +253,17 @@ class Parser:
             raise ValueError("Invalid Settings menu entry")
         document.after = resource_reference(entry.attrib["after"])
         document.open_action = entry.get("open", "")
+        document.preview = entry.get("preview", "")
+        if document.preview not in ("", "image"):
+            raise ValueError("Settings preview must be image")
+        document.preview_image = entry.get("image", "")
+        document.preview_caption = entry.get("caption", "")
+        if (
+            document.preview_image or document.preview_caption
+        ) and document.preview != "image":
+            raise ValueError("Settings image and caption require an image preview")
+        if document.preview_image and document.preview_image not in document.bitmaps:
+            raise ValueError("Settings preview image must reference a declared bitmap")
 
 
 def resource_reference(value):

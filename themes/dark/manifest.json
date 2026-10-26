@@ -222,6 +222,18 @@
     "file": "now-playing-classic-shuffle.png"
   },
   {
+    "name": "NowPlaying_Classic_Repeat_Image",
+    "type": "BMap",
+    "id": "0x0DAD0869",
+    "file": "now-playing-classic-repeat.png"
+  },
+  {
+    "name": "NowPlaying_Classic_Repeat_Once_Image",
+    "type": "BMap",
+    "id": "0x0DAD086A",
+    "file": "now-playing-classic-repeat-once.png"
+  },
+  {
     "name": "NowPlaying_ProgressBar_Active_Background_Image",
     "type": "BMap",
     "id": "0x0DAD0882",
@@ -352,5 +364,71 @@
     "type": "BMap",
     "id": "0x0DAD072E",
     "file": "media-nowplayingicon-playlist-black-image.png"
+  },
+  {
+    "name": "Media_ArtistsProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0720",
+    "file": "media-artists-proxy.png"
+  },
+  {
+    "name": "Media_AudioBooksProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0722",
+    "file": "media-audiobooks-proxy.png"
+  },
+  {
+    "name": "Media_DocumentsProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0723",
+    "file": "media-documents-proxy.png"
+  },
+  {
+    "name": "Media_MusicVideosProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0724",
+    "file": "media-music-videos-proxy.png"
+  },
+  {
+    "name": "Media_PhotosProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0725",
+    "file": "media-photos-proxy.png"
+  },
+  {
+    "name": "Media_PlaylistsProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0726",
+    "file": "media-playlists-proxy.png"
+  },
+  {
+    "name": "Media_PodcastsProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0727",
+    "file": "media-podcasts-proxy.png"
+  },
+  {
+    "name": "Media_SearchProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0728",
+    "file": "media-search-proxy.png"
+  },
+  {
+    "name": "Media_TVShowsProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD0729",
+    "file": "media-tv-shows-proxy.png"
+  },
+  {
+    "name": "Media_VideosProxy_Image",
+    "type": "BMap",
+    "id": "0x0DAD072A",
+    "file": "media-videos-proxy.png"
+  },
+  {
+    "name": "CoverFlow_Proxy_Image_iTunesU",
+    "type": "BMap",
+    "id": "0x0DAD0129",
+    "file": "cover-flow-proxy-itunes-u.png"
   }
 ]

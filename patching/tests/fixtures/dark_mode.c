@@ -1,11 +1,13 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include <assert.h>
 #include <string.h>
-#include <stdio.h>
 /* Native layout assertions assume 32-bit pointers; this fixture runs on the host. */
 #define _Static_assert(...)
 #include "../../../payload/osos.h"
 #include "../../../payload/dark_mode.h"
+#include "dark_mode_ui.h"
+#include "custom_eq_ui.h"
+#include "cfw_info_ui.h"
 #undef _Static_assert
 #define CFW_PATCH_H
 #define PATCH_ARM
@@ -43,6 +45,7 @@ static struct {
 
 static int now_playing, now_playing_available = 1, icon_notifications;
 static unsigned icon_invalidations;
+static unsigned preview_invalidations;
 static unsigned char drawn[4];
 
 static int file_open(const struct osos_path *path, int mode, void **handle)
@@ -99,7 +102,9 @@ static void *now_playing_model(void)
 static void invalidate(void)
 {
     assert(icon_invalidations == (now_playing_available ? 3u : 0u));
+    assert(preview_invalidations == 3);
     icon_invalidations = 0;
+    preview_invalidations = 0;
     redraws++;
 }
 
@@ -116,6 +121,12 @@ static void notify(void *value, uint32_t type, uint32_t property)
         return;
     }
     assert(value == &model && type == OSOS_NOTIFY_ALL);
+    if (property == CFW_DarkMode_PreviewImage || property == CFW_DarkMode_PreviewText) {
+        unsigned bit = property == CFW_DarkMode_PreviewImage ? 1 : 2;
+        assert(!(preview_invalidations & bit));
+        preview_invalidations |= bit;
+        return;
+    }
     (void)property;
     notifications++;
 }
@@ -151,6 +162,20 @@ static uint32_t blend(uint32_t pixel, uint32_t background, int weight)
     return 0x1234;
 }
 
+static uintptr_t resource(uint32_t id)
+{
+    return id;
+}
+
+const void *cfw_resource_bitmap(uint32_t id)
+{
+    return id == CFW_DarkMode_Moon || id == CFW_EQ_Icon || id == CFW_Info_Icon
+               ? (const void *)(uintptr_t)id
+               : NULL;
+}
+
+#define osos_ui_string resource
+#define osos_ui_bitmap resource
 #define osos_file_open file_open
 #define osos_file_read file_read
 #define osos_file_write file_write
@@ -209,13 +234,6 @@ static void set_preference(void *object, uint32_t property, uint32_t type,
     clicker_value = value;
 }
 
-static uintptr_t resource(uint32_t id)
-{
-    return id;
-}
-
-#define osos_ui_string resource
-#define osos_ui_bitmap resource
 #include "../../../payload/clicker.c"
 
 void cfw_album_artists_menu_adjust_property(uint32_t type, uint32_t property,
@@ -256,6 +274,11 @@ static void check_clicker(void)
 int main(void)
 {
     uintptr_t value = 0;
+    const uint32_t icons[] = {CFW_EQ_Icon, CFW_Info_Icon};
+    for (unsigned i = 0; i < sizeof(icons) / sizeof(icons[0]); i++) {
+        assert(cfw_settings_property(&model, OSOS_RESOURCE_BMAP, icons[i], &value));
+        assert(value == icons[i] && !stock_properties);
+    }
     cfw_dark_mode_load();
     assert(!cfw_dark_mode_enabled() && !closes);
     assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING, CFW_DarkMode_Value,
@@ -294,6 +317,22 @@ int main(void)
             assert(cfw_settings_action(&controller, "CFW_DarkMode_Toggle", 0));
         int dark = cycle == 1;
         assert(cfw_dark_mode_enabled() == dark);
+        const uint32_t black = 0;
+        const uint32_t text_resources[] = {0x0dad030f, 0x0dad0dcf};
+        for (unsigned i = 0; i < 2; i++) {
+            uint32_t rgb =
+                *(const uint32_t *)cfw_dark_mode_color(text_resources[i], &black);
+            unsigned char rgba[] = {rgb >> 16, rgb >> 8, rgb, 123};
+            cfw_dark_mode_text_color(&surface, rgba);
+            assert(drawn[0] == 0 && drawn[1] == 0 && drawn[2] == dark &&
+                   drawn[3] == 123);
+        }
+        assert(cfw_settings_property(&model, OSOS_RESOURCE_BMAP,
+                                     CFW_DarkMode_PreviewImage, &value));
+        assert(value == (dark ? CFW_DarkMode_Moon : IMG_SUN));
+        assert(cfw_settings_property(&model, OSOS_PROPERTY_STRING,
+                                     CFW_DarkMode_PreviewText, &value));
+        assert(value == (dark ? CFW_DarkMode_DarkLabel : CFW_DarkMode_LightLabel));
         for (unsigned i = 0; i < sizeof(fills) / sizeof(fills[0]); i++) {
             cfw_dark_mode_fill(&surface, &model, fills[i].light, 7, &controller);
             assert(
@@ -309,10 +348,6 @@ int main(void)
         assert(clear_alpha == 0x4321);
         assert(cfw_dark_mode_reflection_blend(0xabcd, 0xffff, 0x8000) == 0x1234);
         assert(blend_background == (dark ? 0x18c3u : 0xffffu));
-        uint32_t stock_backside = 0x00ffffff;
-        const uint32_t *resolved_backside =
-            cfw_dark_mode_color(COVER_FLOW_BACKSIDE_BACKGROUND_ID, &stock_backside);
-        assert(*resolved_backside == (dark ? 0x00181818u : 0x00ffffffu));
         cfw_dark_mode_load();
         assert(cfw_dark_mode_enabled() == dark);
     }
@@ -320,18 +355,16 @@ int main(void)
     assert(icon_notifications == 4);
     assets_ready = 0;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(cfw_dark_mode_enabled() && writes == 3 && redraws == 3);
+    assert(!cfw_dark_mode_enabled() && writes == 2 && redraws == 2);
     disk_record = DARK_MODE_ON_RECORD;
     cfw_dark_mode_load();
-    assert(cfw_dark_mode_enabled());
-    assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(!cfw_dark_mode_enabled() && writes == 4 && redraws == 4);
+    assert(!cfw_dark_mode_enabled());
     assets_ready = 1;
     fail_write = 1;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(!cfw_dark_mode_enabled() && redraws == 4 && notifications == 4);
-    assert(icon_notifications == 8 && !icon_invalidations);
-    assert(closes == 8);
+    assert(!cfw_dark_mode_enabled() && redraws == 2 && notifications == 2);
+    assert(icon_notifications == 4 && !icon_invalidations);
+    assert(closes == 6);
     disk_record = DARK_MODE_ON_RECORD;
     disk_size = 2;
     cfw_dark_mode_load();
@@ -343,18 +376,24 @@ int main(void)
     fail_write = 0;
     now_playing_available = 0;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
-    assert(cfw_dark_mode_enabled() && redraws == 5 && notifications == 5);
-    assert(icon_notifications == 8);
+    assert(cfw_dark_mode_enabled() && redraws == 3 && notifications == 3);
+    assert(icon_notifications == 4);
+    int previous_writes = writes;
+    assets_ready = 0;
+    assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
+    assert(cfw_dark_mode_enabled() && disk_record == DARK_MODE_ON_RECORD);
+    assert(writes == previous_writes && redraws == 3 && notifications == 3);
     assets_ready = 1;
     fail_write = 1;
     int previous_cancellations = asset_cancellations;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
     assert(cfw_dark_mode_enabled() && disk_record == DARK_MODE_ON_RECORD);
     assert(asset_cancellations == previous_cancellations + 1);
-    assert(redraws == 5 && notifications == 5);
+    assert(redraws == 3 && notifications == 3);
     fail_write = 0;
     assert(cfw_dark_mode_action(&controller, "CFW_DarkMode_Toggle", 0));
     assert(!cfw_dark_mode_enabled() && disk_record == DARK_MODE_OFF_RECORD);
-    assert(redraws == 6 && notifications == 6);
+    assert(redraws == 4 && notifications == 4);
+    assert(!preview_invalidations);
     check_clicker();
 }

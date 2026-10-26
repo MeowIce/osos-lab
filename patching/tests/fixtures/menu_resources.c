@@ -8,41 +8,65 @@
 #define CFW_PATCH_H
 #define PATCH_ARM
 #define OSOS_MENU_ITEMS_REGISTER_TYPE register_items
-struct osos_string { const char *data; };
+#define OSOS_RESOURCE_BMAP 0x424d6170
+
+struct osos_string {
+    const char *data;
+};
+
 static void register_items(uint32_t);
 static void osos_resource_set(void *, uint32_t, uint32_t, const void *, uint32_t);
+
 static const void *osos_resource_next(void *bank, uint32_t *id, uint32_t *size)
 {
-    (void)bank; (void)id; (void)size;
+    (void)bank;
+    (void)id;
+    (void)size;
     return NULL;
 }
-static void osos_string_init(struct osos_string *s, const char *text) { s->data = text; }
-static void osos_string_destroy(struct osos_string *s) { (void)s; }
+
+static void osos_string_init(struct osos_string *s, const char *text)
+{
+    s->data = text;
+}
+
+static void osos_string_destroy(struct osos_string *s)
+{
+    (void)s;
+}
+
 static uint32_t name_id;
+
 static uint32_t *osos_resource_name_slot(const struct osos_string *s)
 {
     (void)s;
     return &name_id;
 }
+
 #include "../../../payload/resources.c"
 
 enum { ARTISTS = 1, ITUNES_U, NOW_PLAYING, ALBUM_ARTISTS };
-struct row { uint32_t id, visible; };
+
+struct row {
+    uint32_t id, visible;
+};
 static struct row main_stock[] = {{ARTISTS, 0}, {ITUNES_U, 1}, {NOW_PLAYING, 0}};
 static struct row music_stock[] = {{ARTISTS, 1}, {ITUNES_U, 1}};
 static const struct row main_copy[] = {
-    {ARTISTS, 0}, {ALBUM_ARTISTS, 0}, {ITUNES_U, 1}, {NOW_PLAYING, 0}
-};
-static const struct row music_copy[] = {{ARTISTS, 1}, {ALBUM_ARTISTS, 1}, {ITUNES_U, 1}};
+    {ARTISTS, 0}, {ALBUM_ARTISTS, 0}, {ITUNES_U, 1}, {NOW_PLAYING, 0}};
+static const struct row music_copy[] = {
+    {ARTISTS, 1}, {ALBUM_ARTISTS, 1}, {ITUNES_U, 1}};
 static struct row main_override[4], music_override[3];
 static struct row *main_registry[5], *music_registry[5];
 static unsigned installed, registered;
 static int bank;
+static const unsigned char icon[] = {8, 0, 4, 0};
 const struct cfw_resource cfw_resources[] = {
     {0x4954454d, 26, sizeof(main_copy), (const unsigned char *)main_copy},
     {0x4954454d, 27, sizeof(music_copy), (const unsigned char *)music_copy},
+    {OSOS_RESOURCE_BMAP, 26, sizeof(icon), icon},
 };
-const uint32_t cfw_resource_count = 2;
+const uint32_t cfw_resource_count = sizeof(cfw_resources) / sizeof(cfw_resources[0]);
 const struct cfw_resource_name cfw_resource_names[] = {{"AlbumArtists", ALBUM_ARTISTS}};
 const uint32_t cfw_resource_name_count = 1;
 
@@ -57,7 +81,7 @@ static void osos_resource_set(void *target, uint32_t type, uint32_t id,
 
 static void register_items(uint32_t type)
 {
-    assert(type == 0x4954454d && installed == cfw_resource_count);
+    assert(type == 0x4954454d && installed == 2);
     for (unsigned i = 0; i < 4; i++)
         main_registry[main_override[i].id] = &main_override[i];
     for (unsigned i = 0; i < 3; i++)
@@ -73,6 +97,11 @@ int main(void)
         music_registry[music_stock[i].id] = &music_stock[i];
     cfw_install_resources(&bank);
     assert(registered == 1 && name_id == ALBUM_ARTISTS);
+    assert(installed == 2);
+    for (unsigned i = 0; i < 3; i++)
+        assert(cfw_resource_bitmap(26) == icon);
+    assert(!cfw_resource_bitmap(27));
+    assert(!cfw_resource_bitmap(999));
 
     /* Settings and playback must update the same rows that the menus display. */
     main_registry[ARTISTS]->visible = 1;

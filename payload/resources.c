@@ -4,6 +4,16 @@
 #include "osos.h"
 #include "patch.h"
 
+const void *cfw_resource_bitmap(uint32_t id)
+{
+    for (uint32_t i = 0; i < cfw_resource_count; i++) {
+        const struct cfw_resource *resource = &cfw_resources[i];
+        if (resource->type == OSOS_RESOURCE_BMAP && resource->id == id)
+            return resource->data;
+    }
+    return 0;
+}
+
 PATCH_ARM const void *cfw_next_template(void *bank, uint32_t *id, uint32_t *size)
 {
     uint32_t start = 0;
@@ -39,6 +49,9 @@ void cfw_install_resources(void *bank)
     }
     for (uint32_t i = 0; i < cfw_resource_count; i++) {
         const struct cfw_resource *resource = &cfw_resources[i];
+        /* Settings bitmap properties borrow pixels from the permanent payload. */
+        if (resource->type == OSOS_RESOURCE_BMAP)
+            continue;
         osos_resource_set(bank, resource->type, resource->id, resource->data,
                           resource->size);
     }

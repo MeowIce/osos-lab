@@ -285,43 +285,76 @@ class DocumentCompiler:
 
     def add_settings_preview(self, title):
         document, resources = self.document, self.resources
+        style = "Brightness" if document.preview == "image" else "Legal"
+        template = resources.native(f"SettingsInfo_Template_{style}_Layout")
+        layout = resources.native(f"SettingsMenus_{style}_Layout")
         preview = resources.allocate(document.root.name + "_Preview")
         preview_view = resources.allocate()
-        data = Resource(
-            resources.original[
-                "VLyt", resources.native("SettingsInfo_Template_Legal_Layout")
-            ]
-        )
+        data = Resource(resources.original["VLyt", template])
         put(data, 0x24, title)
+        if document.preview == "image":
+            data = self.image_preview(data)
         resources.add("VLyt", preview_view, data)
-        resources.add(
-            "TEVT",
-            preview_view,
-            resources.original[
-                "TEVT", resources.native("SettingsInfo_Template_Legal_Layout")
-            ],
-        )
+        resources.add("TEVT", preview_view, resources.original["TEVT", template])
         resources.clone_layout(
-            resources.native("SettingsMenus_Legal_Layout"),
+            layout,
             preview,
-            substitutions={
-                resources.native("SettingsInfo_Template_Legal_Layout"): preview_view
-            },
+            substitutions={template: preview_view},
         )
 
         layouts = blocks(
             resources.current("SLst", resources.native("SettingsMenus_Main_Screen"))
         )
         kind, data = next(
-            (kind, Resource(data))
-            for kind, data in layouts
-            if word(data, 0) == resources.native("SettingsMenus_Legal_Layout")
+            (kind, Resource(data)) for kind, data in layouts if word(data, 0) == layout
         )
         put(data, 0, preview)
         layouts.append((kind, data))
         resources.replace(
             "SLst", resources.native("SettingsMenus_Main_Screen"), pack_blocks(layouts)
         )
+
+    def image_preview(self, data):
+        document, resources = self.document, self.resources
+        sources = {}
+        for view, suffix in (
+            ("Settings_Icon_View", "Image"),
+            ("Settings_InfoDetail_View", "Text"),
+        ):
+            if suffix == "Text" and document.preview_caption:
+                sources[resources.native(view)] = resources.source(
+                    document.preview_caption
+                )
+                continue
+            if suffix == "Image" and document.preview_image:
+                property_id = resources.names[document.preview_image]
+            else:
+                name = document.root.name + "_Preview" + suffix
+                self.string_ids[name] = property_id = resources.allocate(name)
+            sources[resources.native(view)] = source = resources.allocate()
+            resources.add(
+                "SORC",
+                source,
+                pack_blocks(
+                    [(0x534F5243, struct.pack("<III", 0x8900, property_id, 1))]
+                ),
+            )
+        views = []
+        for view, options in blocks(data):
+            if view in sources:
+                options = pack_blocks(
+                    [
+                        (
+                            kind,
+                            struct.pack("<I", sources[view])
+                            if kind == 0x534F5243
+                            else value,
+                        )
+                        for kind, value in blocks(options)
+                    ]
+                )
+            views.append((view, options))
+        return pack_blocks(views)
 
     def bind_settings_events(self, item_id):
         document = self.document
@@ -339,7 +372,7 @@ class DocumentCompiler:
             menu_event(
                 item_id,
                 "delayedselected",
-                "ShowSetting_Legal",
+                "" if document.preview == "image" else "ShowSetting_Legal",
                 "navigator.SwitchLayout",
                 [document.root.name + "_Preview"],
             ),

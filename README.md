@@ -46,14 +46,11 @@ RepriseOS package and builds a companion using that iPod's identity.
 - Song Info from song and Now Playing context menus.
 - Album Artists browsing with Artist fallback and configurable menu visibility.
 - Clicker output options (Off, Speaker, Headphones, Both) in Settings.
-- Dark Mode (work in progress), with an On/Off toggle below Brightness in Settings.
+- Dark Mode, with an On/Off toggle in Settings.
 
 **Album Artists** groups tracks by their Album Artist tag, using Artist when that
 field is empty. Show or hide the entry through Settings → Main Menu and Settings →
 Music Menu.
-
-**Dark Mode** is off by default. Some screens and artwork still need visual
-adjustments.
 
 The game SDK and [Doom port](doom/README.md) are unfinished.
 

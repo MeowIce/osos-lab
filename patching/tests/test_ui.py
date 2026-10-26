@@ -4,11 +4,12 @@
 import json
 import struct
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from patching.ui import parser
+from patching.ui import generate, parser
 from patching.ui.codegen import emit_header
 from patching.ui.compiler import DocumentCompiler, compile_document
 from patching.ui.model import ScreenEvent
@@ -40,6 +41,47 @@ def menu(rows):
 
 
 class UiTests(unittest.TestCase):
+    def test_cfw_info_preview_uses_static_bitmap_and_caption(self):
+        root = Path(__file__).resolve().parents[2]
+        metadata = json.loads((root / "firmware/ui.json").read_text())
+        bindings = json.loads((root / "payload/native/ui.json").read_text())["bindings"]
+        resources = Resources(metadata["resources"], bindings)
+        with tempfile.TemporaryDirectory() as directory:
+            generate(resources, [root / "payload/cfw_info.ui"], Path(directory), "test")
+        layout = resources.added["SLyt", resources.names["CFW_Info_Preview"]]
+        screen = resources.added["SSin", word(blocks(layout)[0][1], 0)]
+        preview_id = next(
+            word(data, 8) for _, data in blocks(screen) if word(data, 4) == 0x0DAD0C2E
+        )
+        views = dict(blocks(resources.added["VLyt", preview_id]))
+        for view, kind in (
+            ("Settings_Icon_View", "BMap"),
+            ("Settings_InfoDetail_View", "Str "),
+        ):
+            options = dict(blocks(views[bindings[view]]))
+            source = resources.added["SORC", word(options[0x534F5243], 0)]
+            binding = blocks(source)[0][1]
+            self.assertEqual(
+                (word(binding, 0), word(binding, 8)),
+                (0x8900 if kind == "BMap" else 0x80, 1),
+            )
+            resource_id = word(binding, 4)
+            content = resources.added[kind, resource_id].data
+            if kind == "BMap":
+                self.assertEqual(resource_id, resources.names["CFW_Info_Icon"])
+                self.assertEqual(
+                    struct.unpack_from("<HHHHiiiii", content),
+                    (8, 0, 80, 8, 0, 0, 121, 78, 9680),
+                )
+            else:
+                self.assertEqual(content, b"RepriseOS\0")
+        events = resources.added["CEVT", bindings["SettingsMenus_Main_Screen"]]
+        original = resources.stock("CEVT", "SettingsMenus_Main_Screen")
+        appended = bytes(events.data[len(original) :])
+        self.assertIn(b"CFW_Info_Screen", appended)
+        self.assertIn(b"navigator.PushScreen", appended)
+        self.assertNotIn(b"ShowSetting_Legal", appended)
+
     def test_settings_toggle_preserves_stock_rows_and_has_no_navigation(self):
         root = Path(__file__).resolve().parents[2]
         metadata = json.loads((root / "firmware/ui.json").read_text())
@@ -49,10 +91,9 @@ class UiTests(unittest.TestCase):
         compiled = compile_document(resources, document)
         stock = blocks(resources.stock("ITEM", "SettingsMenu_Items"))
         rows = blocks(resources.added["ITEM", bindings["SettingsMenu_Items"]])
+        # Pinned 2.0.5 Brightness ID; 0x0dad0c71 is Backlight Timer.
         anchor = next(
-            i
-            for i, (_, row) in enumerate(rows)
-            if word(row, 0x30) == bindings["SettingsMenu_ListItem_Brightness"]
+            i for i, (_, row) in enumerate(rows) if word(row, 0x30) == 0x0DAD0C72
         )
         _, toggle = rows.pop(anchor + 1)
         for (_, before), (_, after) in zip(stock, rows, strict=True):
@@ -76,7 +117,34 @@ class UiTests(unittest.TestCase):
         appended = bytes(events.data[len(original) :])
         self.assertIn(b"CFW_DarkMode_Toggle", appended)
         self.assertNotIn(b"navigator.PushScreen", appended)
+        self.assertNotIn(b"ShowSetting_Legal", appended)
         self.assertNotIn("CFW_DarkMode_Screen", resources.names)
+        preview = next(
+            data for (kind, _), data in resources.added.items() if kind == "VLyt"
+        )
+        views = dict(blocks(preview))
+        stock_views = dict(
+            blocks(resources.stock("VLyt", "SettingsInfo_Template_Brightness_Layout"))
+        )
+        for view, suffix in (
+            ("Settings_Icon_View", "Image"),
+            ("Settings_InfoDetail_View", "Text"),
+        ):
+            view_id = bindings[view]
+            options = dict(blocks(views[view_id]))
+            source = word(options[0x534F5243], 0)
+            binding = blocks(resources.added["SORC", source])[0][1]
+            self.assertEqual(
+                [word(binding, offset) for offset in (0, 4, 8)],
+                [0x8900, compiled.string_ids["CFW_DarkMode_Preview" + suffix], 1],
+            )
+            for kind, original in blocks(stock_views[view_id]):
+                if kind != 0x534F5243:
+                    self.assertEqual(options[kind].data, original.data)
+                    self.assertEqual(options[kind].origins, original.origins)
+        base_panel = 0x0DAD0C2F
+        self.assertEqual(views[base_panel].data, stock_views[base_panel].data)
+        self.assertEqual(views[base_panel].origins, stock_views[base_panel].origins)
 
     def test_album_artists_reuses_native_routes_and_adds_a_music_row(self):
         root = Path(__file__).resolve().parents[2]

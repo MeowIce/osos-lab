@@ -5,6 +5,7 @@
 #include "dark_mode.h"
 #include "osos.h"
 #include "patch.h"
+#include "resources.h"
 
 PATCH_ARM int cfw_settings_action(void *controller, const char *action,
                                   uint32_t argument)
@@ -22,6 +23,13 @@ PATCH_ARM int cfw_settings_property(void *model, uint32_t type, uint32_t propert
     if (cfw_dark_mode_property(type, property, out) ||
         cfw_clicker_property(model, type, property, out))
         return 1;
+    if (type == OSOS_RESOURCE_BMAP) {
+        const void *bitmap = cfw_resource_bitmap(property);
+        if (bitmap) {
+            *out = (uintptr_t)bitmap;
+            return 1;
+        }
+    }
     int result = osos_settings_property(model, type, property, out);
     if (result)
         cfw_album_artists_menu_adjust_property(type, property, out);
